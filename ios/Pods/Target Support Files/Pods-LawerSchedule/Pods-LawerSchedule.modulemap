@@ -1,0 +1,6 @@
+module Pods_LawerSchedule {
+  umbrella header "Pods-LawerSchedule-umbrella.h"
+
+  export *
+  module * { export * }
+}

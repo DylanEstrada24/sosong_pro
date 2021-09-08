@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "677987093814",
+    "project_id": "sspro-1c649",
+    "storage_bucket": "sspro-1c649.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:677987093814:android:52b870d71f529dde84f797",
+        "android_client_info": {
+          "package_name": "com.hidev.sosongpro"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "677987093814-l3vbib0gjqsp0brum5la9bri72v0hnle.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIQu0CPJKHUREZ645yF2Tgi6YQI9qazHI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "677987093814-l3vbib0gjqsp0brum5la9bri72v0hnle.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
