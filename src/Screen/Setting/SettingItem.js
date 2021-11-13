@@ -16,7 +16,13 @@ function SettingItem ({title, content, isMore, topItem, input}) {
 	return (
 		<View style={styles.itemContainer}>
 			<View style={styles.titleContainer}>
-				<Text style={topItem ? styles.title2 : styles.title}>{title}</Text>
+				{
+					topItem ? (
+						<Text style={styles.title2}>{title}<Text style={{fontSize: 13}}>님</Text></Text>
+					) : (
+						<Text style={styles.title}>{title}</Text>
+					)
+				}
 			</View>
 			<View style={styles.contentContainer}>
 				{
@@ -59,39 +65,36 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		justifyContent: "space-between",
 		alignItems: "center",
-		// marginLeft: Dimensions.get('window').width / 10,
-		// marginRight: Dimensions.get('window').width / 10,
 		paddingTop: 8,
 		paddingBottom: 8,
 	},
 	titleContainer: {
 		alignItems: "flex-start",
-		flex: 7,
+		flex: 8,
 	},
 	title: {
 		fontSize: 15,
-		fontWeight: "bold",
-		color: "#2665A1",
+		color: "#0078d4",
 	},
 	title2: {
 		fontSize: 20,
 		fontWeight: "bold",
-		color: "#2665A1",
+		color: "#0078d4",
 	},
 	contentContainer: {
 		alignItems: "flex-end",
+		justifyContent: 'flex-end',
 		flex: 9,
 		marginRight: 5,
 	},
 	content: {
 		fontSize: 15,
-		fontWeight: 'bold',
 		color: "#666666",
 	},
 	content2: {
 		fontSize: 15,
-		fontWeight: 'bold',
-		color: "#F0842C",
+		color: "#000",
+		marginTop: 5,
 	},
 	arrowContainer: {
 		alignItems: "center",

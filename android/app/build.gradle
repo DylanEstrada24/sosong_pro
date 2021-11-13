@@ -135,8 +135,8 @@ android {
         applicationId "com.hidev.sosongpro"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 9
+        versionName "9.0"
         // react-native-iap: we only use the Google Play flavor
         missingDimensionStrategy 'store', 'play'
     }

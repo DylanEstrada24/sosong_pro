@@ -96,15 +96,21 @@ class Profile extends Component {
 
 		commonApi('POST', 'auth/update/pwd', pwdChange).then((result) => {
 
-			console.log(result)
+			if(result.success) {
+				this.props.setUser({
+					password: this.state.password,
+				})
+	
+				SimpleToast.show("비밀번호가 변경되었습니다.", SimpleToast.BOTTOM)
 
-			this.props.setUser({
-				password: this.state.password,
-			})
+				this.props.navigation.pop()
+			} else {
+				SimpleToast.show(result.msg, SimpleToast.BOTTOM)
+			}
 
-			this.props.navigation.pop()
 
-		}).catch((err) => console.log('auth/update/pwd', err))
+		// }).catch((err) => console.log('auth/update/pwd', err))
+		}).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 
 	}
 
@@ -127,9 +133,11 @@ class Profile extends Component {
 								<TextInput 
 									style={styles.input} 
 									placeholder="영소문자, 영대문자, 숫자, 특수문자 포함 8자리 이상" 
+									placeholderTextColor="#808080"
 									onChangeText={this.onCurrentPasswordHandle}
 									value={this.state.currentPassword}
 									secureTextEntry
+									autoCapitalize='none' 
 								/>
 							</View>
 							<View style={styles.titleContainer}>
@@ -142,9 +150,11 @@ class Profile extends Component {
 								<TextInput 
 									style={styles.input} 
 									placeholder="영소문자, 영대문자, 숫자, 특수문자 포함 8자리 이상" 
+									placeholderTextColor="#808080"
 									onChangeText={this.onPasswordHandle}
 									value={this.state.password}
 									secureTextEntry
+									autoCapitalize='none' 
 								/>
 							</View>
 							<View style={styles.titleContainer}>
@@ -157,9 +167,11 @@ class Profile extends Component {
 								<TextInput 
 									style={styles.input} 
 									placeholder="영소문자, 영대문자, 숫자, 특수문자 포함 8자리 이상" 
+									placeholderTextColor="#808080"
 									onChangeText={this.onPasswordConfirmHandle}
 									value={this.state.passwordConfirm}
 									secureTextEntry
+									autoCapitalize='none' 
 								/>
 							</View>
 						</View>
@@ -202,7 +214,7 @@ const styles = StyleSheet.create({
 	},
 	replyText: {
 		fontSize: 15,
-		color: "#2665A1",
+		color: "#0078d4",
 	},
 	loginButton: {
 		width: '100%',
@@ -248,7 +260,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 23,
 	},
 	nextButton: {
-		backgroundColor: '#2665A1',
+		backgroundColor: '#0078d4',
 		borderRadius: 5,
 		width: '80%',
 		marginLeft: Dimensions.get('window').width / 10,

@@ -38,7 +38,7 @@ export default Board;
 const styles = StyleSheet.create({
 	header: {
 		flex: 0.1,
-		marginTop: 20,
+		marginTop: 10,
 	},
 	write: {
 		justifyContent: 'flex-end',
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 		right: 0,
 	},
 	circle: {
-		backgroundColor: '#2665A1',
+		backgroundColor: '#0078d4',
 		justifyContent: 'center',
 		alignItems: 'center',
 		borderRadius: 25,

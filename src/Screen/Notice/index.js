@@ -3,14 +3,18 @@ import {
 	View,
 	Text,
 	StyleSheet,
+	Image,
+	Dimensions,
 	TouchableOpacity,
 	FlatList,
 } from 'react-native';
 import { commonApi } from '../../Common/ApiConnector';
 import { store } from '../../redux/store';
 
+import HeaderText from '../../Components/HeaderText';
 import NoticeList from './NoticeList';
 import NoticeComponent from './Notice';
+import moment from 'moment';
 
 class Notice extends Component {
 
@@ -23,28 +27,34 @@ class Notice extends Component {
     }
 
 	async componentDidMount() {
-		commonApi('GET', 'admin/notice', {}).then((result) => {
+		commonApi('GET', 'user/notice', {}).then((result) => {
 			if(result.success) {
 				this.setState({
 					notices: result.data
 				})
+			} else {
+				SimpleToast.show(result.msg, SimpleToast.BOTTOM)
 			}
-		}).catch((err) => console.log('admin/notice', err))
+		// }).catch((err) => console.log('user/notice', err))
+		}).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 
-		this.props.navigate.addListener('didFocus', () => {
-			commonApi('GET', 'admin/notice', {}).then((result) => {
+		this.props.navigation.addListener("didFocus", () => {
+			commonApi('GET', 'user/notice', {}).then((result) => {
 				if(result.success) {
 					this.setState({
 						notices: result.data
 					})
+				} else {
+					SimpleToast.show(result.msg, SimpleToast.BOTTOM)
 				}
-			}).catch((err) => console.log('admin/notice', err))
+			// }).catch((err) => console.log('user/notice', err))
+			}).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 		})
 	}
 
 	_renderItem = ({item}) => (
-		<TouchableOpacity onPress={() => this.props.navigation.navigate('NoticeDetail', {idx: item.idx})}>
-			<NoticeComponent title={item.title} createAt={item.createAt} key={item.idx} />
+		<TouchableOpacity onPress={() => this.props.navigation.navigate('NoticeDetail', {notice: item})}>
+			<NoticeComponent title={item.title} createAt={moment(item.createAt).add('9', 'h').toISOString()} key={item.idx} />
 		</TouchableOpacity>
 	)
 
@@ -53,20 +63,24 @@ class Notice extends Component {
 		return (
 			<View style={styles.container}>
 				<View style={styles.Top}>
-					<View style={styles.header}>
-						<View style={styles.title}>
-							<Text style={styles.titleText}>공지사항</Text>
+					<View style={styles.headerContainer}>
+						<View style={styles.headerLeft}>
+							<HeaderText title='공지사항' />
 						</View>
-						{
-							store.getState().user.email === 'admin@admin.com' ? (
-								<TouchableOpacity style={styles.addContainer} onPress={() => this.props.navigation.navigate('WriteNotice')}>
-									<Text style={styles.addText}>등록</Text>
-								</TouchableOpacity>
-							) : (<></>)
-						}
+						<View style={styles.headerRight}>
+							{
+								store.getState().user.email === 'admin@admin.com' ? (
+									<TouchableOpacity style={styles.addContainer} onPress={() => this.props.navigation.navigate('WriteNotice')}>
+										<Text style={styles.addText}>등록</Text>
+									</TouchableOpacity>
+								) : (<></>)
+							}
+							{/* <TouchableOpacity onPress={() => this.props.navigation.pop()}>
+								<Image source={require('../../assets/images/X.png')} />
+							</TouchableOpacity> */}
+						</View>
 					</View>
 					<View style={styles.contentContainer}>
-						{/* <NoticeList navigation={this.props.navigation} notices={this.state.notices}/> */}
 						<FlatList 
 							style={styles.userListContainer} 
 							navigation={this.props.navigation} 
@@ -94,40 +108,55 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'space-between',
 	},
-	header: {
-		width: '100%',
+	// header: {
+	// 	width: '100%',
+	// 	flexDirection: 'row',
+	// 	justifyContent: 'space-between',
+	// 	marginTop: 10,
+	// 	borderBottomColor: '#C4C4C4',
+	// 	borderBottomWidth: 1,
+	// 	paddingBottom: 5,
+	// },
+	// title: {
+
+	// },
+	// titleText: {
+	// 	fontSize: 20,
+	// 	fontWeight: '700',
+	// 	marginLeft: 18,
+	// },
+	headerContainer: {
+		marginTop: 10,
 		flexDirection: 'row',
-		justifyContent: 'space-between',
-		marginTop: 20,
-		borderBottomColor: '#2665A1',
+		justifyContent: "space-between",
+		alignItems: 'flex-start',
+		borderBottomColor: "#C4C4C4",
 		borderBottomWidth: 1,
 		paddingBottom: 5,
 	},
-	title: {
-
+	headerLeft: {
+        marginLeft: Dimensions.get('window').width / 20
 	},
-	titleText: {
-		fontSize: 20,
-		fontWeight: '700',
-		marginLeft: 18,
+	headerRight: {
+		flexDirection: 'row',
+        marginRight: Dimensions.get('window').width / 20,
 	},
 	addContainer: {
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginRight: 18,
+		marginTop: 3
 	},
 	addText: {
 		fontSize: 15,
 		fontWeight: 'bold',
-		color: '#2665A1'
+		color: '#0078d4'
 	},
 	contentContainer: {
 		flexDirection: 'column',
 		width: '100%',
 		justifyContent: 'center',
 		alignItems: 'center',
-		// marginLeft: Dimensions.get('window').width / 20,
-		// marginRight: Dimensions.get('window').width / 20,
 		marginTop: 12,
 	},
 })

@@ -1,6 +1,0 @@
-module Pods_LawerSchedule_LawerScheduleTests {
-  umbrella header "Pods-LawerSchedule-LawerScheduleTests-umbrella.h"
-
-  export *
-  module * { export * }
-}

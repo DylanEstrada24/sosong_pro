@@ -10,26 +10,25 @@ import {
 	Image,
 	Keyboard,
 	BackHandler,
+	Platform,
+	Alert,
 } from 'react-native';
 
 import CheckBox from '@react-native-community/checkbox';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
 import { commonApi } from '../../Common/ApiConnector';
 import SimpleToast from 'react-native-simple-toast';
-// import { useSelector } from 'react-redux';
 
 import { store } from '../../redux/store';
 import { connect } from 'react-redux';
 import { setUser, clearUser } from '../../redux/actions/user'; // action
 
 import messaging from '@react-native-firebase/messaging';
-
+import Icon from 'react-native-vector-icons/AntDesign';
 import PushNotification from 'react-native-push-notification';
 import { Modal } from 'react-native-paper';
+import NavigationService from '../../Navigation/NavigationService';
+import * as RNIap from 'react-native-iap';
 
-// const user = await AsyncStorage.getItem('user');
-
-var {user} = store.getState();
 
 class Login extends Component {
 
@@ -42,22 +41,31 @@ class Login extends Component {
 			password: '',
 			fbToken: 'string',
 			isVisible: false,
+			autoLogin: false,
+			secureTextEntry: false,
+			showPassword: true,
+			clicked: false,
         }
 
-        this.toggleCheckbox1 = this.toggleCheckbox1.bind(this)
-        this.toggleCheckbox2 = this.toggleCheckbox2.bind(this)
+        this.toggleSaveId = this.toggleSaveId.bind(this)
+        this.toggleSavePassword = this.toggleSavePassword.bind(this)
+        this.toggleAutoLogin = this.toggleAutoLogin.bind(this)
 		this.emailHandler = this.emailHandler.bind(this)
 		this.passwordHandler = this.passwordHandler.bind(this)
 		this.loginHandler = this.loginHandler.bind(this)
 		this.localPush = this.localPush.bind(this)
 		this.toggleModal = this.toggleModal.bind(this)
+		this.checkReceipt = this.checkReceipt.bind(this)
     }
 
-    toggleCheckbox1(newValue) {
+    toggleSaveId(newValue) {
         this.setState({saveId: newValue});
     }
-    toggleCheckbox2(newValue) {
+    toggleSavePassword(newValue) {
         this.setState({savePassword: newValue});
+    }
+    toggleAutoLogin(newValue) {
+        this.setState({autoLogin: newValue});
     }
 	emailHandler(value) {
 		this.setState({email: value})
@@ -69,9 +77,71 @@ class Login extends Component {
 		this.setState({isVisible: !this.state.isVisible})
 	}
 
+	toggleClicked = (value) => this.setState({clicked: value})
+
+	async checkReceipt() {
+		
+		let result
+		let userType = 'common'
+
+		let receipt = ''
+
+		try {
+
+		
+			try {
+				result = await RNIap.initConnection();
+				await RNIap.flushFailedPurchasesCachedAsPendingAndroid();
+				if (result === false) {
+					Alert.alert(ENV.language["couldn't get in-app-purchase information"]);
+					return;
+				}
+			} catch (err) {
+				console.debug('initConnection');
+				console.error(err.code, err.message);
+			}
+
+			try {
+				
+				const purchases = await RNIap.getAvailablePurchases()
+
+				console.log(purchases)
+					
+				receipt = purchases[0].transactionReceipt
+
+				if(Platform.OS === 'android' && purchases[0].purchaseToken) {
+					receipt = purchases[0].purchaseToken
+				}
+
+			} catch (err) {
+				console.warn(err.code, err.message);
+			}
+
+			// getAvailablePurchases가 성공적으로 호출되어야 검증함
+			console.log('131')
+			if(receipt !== '') {
+				// 토큰 검증 API
+				await commonApi('GET', `purchase/${receipt}`, {}).then((res) => {
+					console.log('135')
+					if(res === success) {
+						console.log('member!!')
+						return 'member'
+					} else {
+						console.log('common..')
+						return 'common'
+					}
+				}).catch((err) => SimpleToast.show('서버와 연결이 끊어졌습니다. \n나중에 다시 시도해주세요.', SimpleToast.BOTTOM))
+
+			}
+		} catch (err) {
+			console.log(err)
+		} finally {
+			return userType
+		}
+	}
+
 	async loginHandler() {
 
-		// this.props.clearUser()
 
 		const fcmToken = await messaging().getToken();
         console.log(fcmToken)
@@ -94,9 +164,18 @@ class Login extends Component {
 			return this.adminLogin()
 		}
 
-		commonApi('POST', 'auth/signin', user).then((data) => {
+		this.toggleClicked(true)
+
+		await commonApi('POST', 'auth/signin', user).then((data) => {
 			if(data.success) {
-				// console.log(data.data)
+
+				this.toggleClicked(false)
+
+				let receipt = '' // 구독여부 확인용
+				let userType = 'common'
+
+				// 구독이 돼었다가 끊겼으면 토스트 띄우기.
+				// 로그인 시 구독정보 불러온 뒤 구독취소 / 구독만료 시 처리
 
 				loggedinUser = data.data
 
@@ -106,6 +185,9 @@ class Login extends Component {
 						isVisible: true
 					})
 					return 
+				} else if(loggedinUser.status === 'reject') {
+					SimpleToast.show("회원가입 승인이 거절되었습니다.", SimpleToast.BOTTOM)
+					return
 				}
 
 				this.props.setUser({
@@ -123,30 +205,44 @@ class Login extends Component {
 					goodchAccessToken: loggedinUser.token,
 					saveId: this.state.saveId,
 					savePassword: this.state.savePassword,
-					userType: loggedinUser.userType,
+					// 상용할때 체크해야함, dev: 'common' ... JY
+					// userType: loggedinUser.userType, 
+					userType: 'common',
 					name: loggedinUser.name,
 					userIdx: loggedinUser.idx,
+					autoLogin: this.state.autoLogin,
+					receipt: receipt,
 				});
 
-				// this.props.dispatchSetUser(data.data)
 				this.setState({
 					email: '',
 					password: '',
 				})
 				this.props.navigation.navigate("TabNavigator")
+
 			} else {
 				// 회원정보가 일치하지않음.
-				SimpleToast.show("아이디 혹은 비밀번호가 틀렸습니다.", SimpleToast.BOTTOM)
+				this.toggleClicked(false)
+				SimpleToast.show(data.msg, SimpleToast.BOTTOM)
 			}
-		}).catch((err) => console.log(err));
+		
+		}).catch((err) => {
+			this.toggleClicked(false)
+			console.log(err)
+			SimpleToast.show("서버와 연결이 끊어졌습니다. \n나중에 다시 시도해주세요.", SimpleToast.BOTTOM)
+		});
 
 	}
 
 	async componentDidMount() {
 
+		count = 0
+
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackButton)
 
 		const user = store.getState().user
+
+		console.log('login didmount user ',user)
 
 		if(user.saveId) {
 			this.setState({
@@ -161,6 +257,13 @@ class Login extends Component {
 				savePassword: user.savePassword
 			})
 		}
+
+		if(user.autoLogin) {
+			this.setState({
+				autoLogin: user.autoLogin
+			})
+		}
+
 	}
 
 	componentWillUnmount() {
@@ -184,9 +287,10 @@ class Login extends Component {
 			return SimpleToast.show("PW를 입력해주세요.", SimpleToast.BOTTOM);
 		}
 
+		this.toggleClicked(true)
+
 		commonApi('POST', 'admin/auth/signin', user).then((data) => {
 			if(data.success) {
-				// console.log(data.data)
 
 				loggedinUser = data.data
 
@@ -196,17 +300,21 @@ class Login extends Component {
 					goodchAccessToken: loggedinUser.token,
 				});
 
-				// this.props.dispatchSetUser(data.data)
 				this.setState({
 					email: '',
 					password: '',
 				})
+				this.toggleClicked(false)
 				this.props.navigation.navigate("AdminMenu")
 			} else {
 				// 회원정보가 일치하지않음.
-				SimpleToast.show("아이디 혹은 비밀번호가 틀렸습니다.", SimpleToast.BOTTOM)
+				this.toggleClicked(false)
+				SimpleToast.show(data.msg, SimpleToast.BOTTOM)
 			}
-		}).catch((err) => console.log(err));
+		}).catch((err) => {
+			this.toggleClicked(false)
+			SimpleToast.show("서버와 연결이 끊어졌습니다.", SimpleToast.BOTTOM)
+		});
 	}
 
 	localPush() {
@@ -240,6 +348,15 @@ class Login extends Component {
         }
         return true;
     }
+
+	handleShowPassword = () => {
+		this.setState({showPassword: false});
+	};
+	
+	handleHidePassword = () => {
+		this.setState({showPassword: true});
+	};
+	
 	
 	render() {
 		return (
@@ -247,55 +364,83 @@ class Login extends Component {
 				<TouchableWithoutFeedback  onPress={Keyboard.dismiss}>
 					<View style={styles.loginContainer}>
 						<View style={styles.titleContainer}>
-							{/* <Text style={styles.title}>
+							<Text style={styles.subTitle}>
+								내 손안의 소송비서
+							</Text>
+							<Text style={styles.title}>
 								소송프로
-							</Text> */}
-							<Image source={require('../../assets/images/Logo.png')} />
+							</Text>
 						</View>
 						<View style={styles.inputContainer}>
-							<TextInput 
-								value={this.state.email}
-								style={styles.loginTextInput} 
-								placeholder="ID를 입력해 주세요." 
-								onChangeText={(value) => this.emailHandler(value)}
-								onSubmitEditing={() => { this.secondTextInput.focus(); }}
-							/>
-							<TextInput 
-								value={this.state.password}
-								style={styles.loginTextInput} 
-								placeholder="PW를 입력해 주세요." 
-								onSubmitEditing={(e) => this.loginHandler(e)}
-								onChangeText={(value) => this.passwordHandler(value)}
-								secureTextEntry
-								ref={(input) => { this.secondTextInput = input; }}
-							/>
+							<View style={styles.textInputContainer}>
+								<TextInput 
+									value={this.state.email}
+									style={styles.loginTextInput} 
+									placeholder="ID를 입력해 주세요." 
+									placeholderTextColor="#808080"
+									onChangeText={(value) => this.emailHandler(value)}
+									onSubmitEditing={() => { this.secondTextInput.focus(); }}
+									autoCapitalize='none' 
+								/>
+							</View>
+							<View style={styles.textInputContainer}>
+								<TextInput 
+									value={this.state.password}
+									style={styles.loginTextInput} 
+									placeholder="PW를 입력해 주세요." 
+									placeholderTextColor="#808080"
+									onSubmitEditing={(e) => this.loginHandler(e)}
+									onChangeText={(value) => this.passwordHandler(value)}
+									secureTextEntry={this.state.showPassword}
+									ref={(input) => { this.secondTextInput = input; }}
+									autoCapitalize='none' 
+								/>
+								<TouchableOpacity
+									style={styles.rigthAction}
+									onPressIn={this.handleShowPassword}
+									onPressOut={this.handleHidePassword}>
+									<Icon name="eyeo" style={styles.rigthIcon} />
+								</TouchableOpacity>
+							</View>
 						</View>
 						<View style={styles.checkboxContainer}>
 							<View style={styles.checkboxItem}>
-								<CheckBox style={styles.loginCheckbox} tintColors={{ true: '#2665A1', false: '#2665A1' }} value={this.state.saveId} onValueChange={(newValue) => this.toggleCheckbox1(newValue)} />
+								<CheckBox style={styles.loginCheckbox} tintColors={{ true: '#0078d4', false: '#0078d4' }} value={this.state.saveId} onValueChange={(newValue) => this.toggleSaveId(newValue)} />
 								<Text style={styles.loginCheckboxText}>아이디 저장</Text>
 							</View>
 							<View style={styles.checkboxItem}>
-								<CheckBox style={styles.loginCheckbox} tintColors={{ true: '#2665A1', false: '#2665A1' }} value={this.state.savePassword} onValueChange={(newValue) => this.toggleCheckbox2(newValue)} />
+								<CheckBox style={styles.loginCheckbox} tintColors={{ true: '#0078d4', false: '#0078d4' }} value={this.state.savePassword} onValueChange={(newValue) => this.toggleSavePassword(newValue)} />
 								<Text style={styles.loginCheckboxText}>비밀번호 저장</Text>
 							</View>
 						</View>
+						<View style={styles.checkboxContainer}>
+							<View style={styles.checkboxItem}>
+								<CheckBox style={styles.loginCheckbox} tintColors={{ true: '#0078d4', false: '#0078d4' }} value={this.state.autoLogin} onValueChange={(newValue) => this.toggleAutoLogin(newValue)} />
+								<Text style={styles.loginCheckboxText}>자동 로그인</Text>
+							</View>
+							<View style={styles.checkboxItem}/>
+						</View>
 						<View style={styles.textContainer}>
-							{/* <Text style={styles.text}>
-								아이디와 비밀번호는 본 어플리케이션에서 직접 <Text style={{color: '#F0842C'}}>전자소송</Text>에 로그인하기 위해 사용되며 <Text style={{color: '#F0842C'}}>회사에 제공되지 않습니다.</Text>
-							</Text> */}
 						</View>
 						<View style={styles.buttonContainer}>
-							{/* <TouchableOpacity style={styles.button} onPress={() => this.props.navigation.navigate('TabNavigator')}> */}
-							<TouchableOpacity style={styles.button} onPress={(e) => this.loginHandler(e)}>
+							<TouchableOpacity 
+								style={[
+									styles.button, 
+									this.state.clicked ? {backgroundColor: '#C8C8C8'} : null
+								]} 
+								disabled={this.state.clicked ? true : false}
+								onPress={(e) => this.loginHandler(e)}
+							>
 								<Text style={styles.login}>로그인</Text>
 							</TouchableOpacity>
-							<TouchableOpacity style={styles.button} onPress={() => this.props.navigation.navigate('Enroll')}>
-								<Text style={styles.login}>회원가입</Text>
+						</View>
+						<View style={styles.optionContainer}>
+							<TouchableOpacity style={styles.underLine} onPress={() => this.props.navigation.navigate('Enroll')}>
+								<Text style={styles.underLineText}>회원가입</Text>
 							</TouchableOpacity>
-							{/* <TouchableOpacity style={styles.button} onPress={() => this.localPush()}>
-								<Text style={styles.login}>로컬푸시</Text>
-							</TouchableOpacity> */}
+							<TouchableOpacity style={styles.underLine} onPress={() => this.props.navigation.navigate('FindPwd')}>
+								<Text style={styles.underLineText}>비밀번호 찾기</Text>
+							</TouchableOpacity>
 						</View>
 					</View>
 				</TouchableWithoutFeedback>
@@ -306,7 +451,7 @@ class Login extends Component {
 								<Text style={{fontSize: 14, fontWeight: 'bold'}}>
 									변호사 인증이 필요합니다. {'\n'}아래 메일로 자료를 보내주시기 바랍니다.
 								</Text>
-								<Text style={{color: '#2665A1', fontSize: 20, fontWeight: 'bold'}}>
+								<Text style={{color: '#0078d4', fontSize: 20, fontWeight: 'bold'}}>
 									sosongpro@gmail.com
 								</Text>
 							</View>
@@ -332,39 +477,56 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	titleContainer: {
-		// marginLeft: 138,
-		// marginRight: 138,
-		// marginTop: 140,
-		marginBottom: 24,
+		marginBottom: 28,
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
+	image: {
+		width: 130,
+		height: 60,
+	},
+	subTitle: {
+		fontSize: 12,
+	},
 	title: {
-		fontSize: 22,
+		fontSize: 40,
 		fontWeight: "700",
 		textAlign: 'center',
+		color: '#0078D4',
 	},
 	inputContainer: {
-		// marginLeft: 32,
-		// marginRight: 32,
 		alignItems: 'center',
 		justifyContent: 'center',
 		width: "80%",
 	},
+	textInputContainer: {
+		width: '100%',
+		height: 48,
+	},
 	loginTextInput: {
 		width: '100%',
 		height: 36,
-		marginBottom: 7,
-		fontSize: 13,
+		fontSize: 14,
 		fontWeight: "400",
 		justifyContent: 'center',
 		borderRadius: 5,
 		backgroundColor: '#e5e5e5',
+		flexDirection: 'row',
+		color: '#000',
+	},
+	rigthAction: {
+		height: 36,
+		width: 35,
+		justifyContent: 'center',
+		alignItems: 'center',
+		position: 'absolute',
+		right: 0,
+	},
+	rigthIcon: {
+		color: '#000',
+		fontSize: 20,
 	},
 	checkboxContainer: {
-		// marginLeft: 50,
-		// marginRight: 50,
-		// marginBottom: 124,
 		width: "80%",
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -387,27 +549,39 @@ const styles = StyleSheet.create({
 		flexWrap: 'nowrap',
 	},
 	buttonContainer: {
-		// marginLeft: 32,
-		// marginRight: 32,
-		// marginTop: 153,
-		// marginBottom: 186,
 		justifyContent: 'center',
+		width: '80%',
+	},
+	optionContainer: {
+		alignItems: 'flex-end',
+		justifyContent: 'flex-end',
 		width: '80%',
 	},
 	button: {
 		width: '100%',
 		borderRadius: 5,
-		// textAlign: 'center',
-		backgroundColor: '#2665A1',
+		backgroundColor: '#0078d4',
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginBottom: 10,
+		marginBottom: 40,
 	},
 	login: {
 		fontWeight: "bold",
 		fontSize: 15,
 		color: '#FFFFFF',
 		padding: 10,
+	},
+	underLine: {
+		justifyContent: 'flex-end',
+		alignItems: 'flex-end',
+		marginBottom: 20,
+	},
+	underLineText: {
+		fontSize: 14,
+		fontWeight: 'bold',
+		color: '#000',
+		textDecorationLine: 'underline',
+		textDecorationColor: '#000',
 	},
 })
 

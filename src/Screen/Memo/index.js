@@ -23,31 +23,7 @@ class Memo extends Component {
         super(props)
         this.state = ({
             memos: 
-                [
-                    {
-                        userCase: {
-                            title: "소송프로",
-                            caseIdx : 0
-                        }, userTodo: [
-                            {
-                                "idx": 0,
-                                "updateAt": "2021-08-23T06:00:49.000Z",
-                                "content": "Memo할 것을 여기적으십시오",
-                                "settingAt": "2021-08-29T15:00:00.000Z",
-                                "user_idx": 0,
-                                "userCase_idx": 0
-                            },
-                            {
-                                "idx": 1,
-                                "updateAt": "2021-08-23T06:00:49.000Z",
-                                "content": "Memo할 것을 여기적으십시오",
-                                "settingAt": "2021-08-29T15:00:00.000Z",
-                                "user_idx": 0,
-                                "userCase_idx": 0
-                            }
-                        ],
-                    }
-                ],
+                [],
             isVisible: false,
             searchValue: '',
             searching: false,
@@ -66,8 +42,10 @@ class Memo extends Component {
 
         BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
 
+        // 메모 가져오기 --> 멤버십 회원만 불러옴
         // 일반유저 구분
-		if(store.getState().user.userType !== 'common') {
+        // 상용할때 체크해야함 ... JY
+		if(store.getState().user.userType === 'common') {
 
             const url = `user/case/note/userIdx`
 
@@ -78,10 +56,12 @@ class Memo extends Component {
                         memos: result.data,
                     })
                 ) : (
-                    console.log(result.msg)
+                    // console.log(result.msg)
+                    SimpleToast.show(result.msg, SimpleToast.BOTTOM)
                 )
 
-            }).catch((err) => console.log(`user/case/note/userIdx :: `, err))
+            // }).catch((err) => console.log(`user/case/note/userIdx :: `, err))
+            }).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 
             this.props.navigation.addListener('didFocus', () => {
 
@@ -92,10 +72,12 @@ class Memo extends Component {
                                 memos: result.data,
                             })
                         ) : (
-                            console.log(result.msg)
+                            // console.log(result.msg)
+                            SimpleToast.show(result.msg, SimpleToast.BOTTOM)
                         )
                     }
-                }).catch((err) => console.log(`user/case/note/userIdx :: `, err))
+                // }).catch((err) => console.log(`user/case/note/userIdx :: `, err))
+                }).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 
             })
 
@@ -232,7 +214,7 @@ class Memo extends Component {
     render() {
 
         const memos = this.state.memos
-        let newMemos = memos.filter((value) => value.userTodo.length !== 0);
+        let newMemos = memos === undefined ? memos.filter((value) => value.userTodo.length !== 0) : [];
 
         return (
             <View style={styles.container}>
@@ -240,6 +222,7 @@ class Memo extends Component {
 					<TextInput 
                         style={styles.searchInput} 
                         placeholder="검색어를 입력하세요." 
+                        placeholderTextColor="#808080"
                         value={this.state.searchValue} 
                         onChangeText={(value) => this.textHandle(value)}
                         onSubmitEditing={() => this.searchItem()}
@@ -263,25 +246,25 @@ class Memo extends Component {
 				</View>
                 <ScrollView style={styles.memoListContainer}>
                     {
-                        newMemos && 
-                        newMemos.map((memos) => 
-                            <MemoList memo={memos} key={memos.userCase.caseIdx}  />
-                        )
+                        newMemos === null || newMemos === undefined || newMemos.length === 0 ? 
+                            <>
+                                <View style={styles.emptyContainer}>
+                                    <Text style={styles.emptyText}>등록된 메모가 없습니다.</Text>
+                                </View>
+                            </> : 
+                            newMemos.map((memos) => {
+                                return (<MemoList memo={memos} key={memos.userCase.caseIdx}  />)
+                            })
                     }
                 </ScrollView>
-                {/* <TouchableOpacity style={styles.write} onPress={() => this.props.navigation.navigate('WriteMemo')}>
-					<View style={styles.circle}>
-						<Image source={require('../../assets/images/NotePencil.png')} />
-					</View>
-				</TouchableOpacity>  */}
                 {
-					store.getState().user.userType !== 'common' ? (
+                    // 상용할때 체크해야함 ... JY
+					store.getState().user.userType === 'common' ? (
 						<TouchableOpacity style={styles.write} onPress={() => this.props.navigation.navigate('WriteMemo', {inCase: false})}>
 							<View style={styles.circle}>
 								<Image source={require('../../assets/images/NotePencil.png')} />
 							</View>
 						</TouchableOpacity>
-					// ) : (<></>)
 					) : (
 						<TouchableOpacity style={styles.write} onPress={() => SimpleToast.show("플랜가입 유저만 가능합니다.", SimpleToast.BOTTOM)}>
 							<View style={styles.circle}>
@@ -303,7 +286,7 @@ class Memo extends Component {
 										value="ASC"
 										status={ this.state.sort === 'ASC' ? 'checked' : 'unchecked' }
 										onPress={() => this.setState({ sort: 'ASC' })}
-										color="#2665A1"
+										color="#0078d4"
 									/>
 									<Text>오름차순</Text>
 								</View>
@@ -312,7 +295,7 @@ class Memo extends Component {
 										value="DESC"
 										status={ this.state.sort === 'DESC' ? 'checked' : 'unchecked' }
 										onPress={() => this.setState({ sort: 'DESC' })}
-										color="#2665A1"
+										color="#0078d4"
 									/>
 									<Text>내림차순</Text>
 								</View>
@@ -337,17 +320,15 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     memoHeader: {
-		marginTop: 40,
+		marginTop: 10,
 		justifyContent: "center",
 		alignItems: "flex-start",
 		borderBottomWidth: 0.8,
-		borderBottomColor: "#2665A1",
+		borderBottomColor: "#0078d4",
 		height: 38,
 		paddingLeft: 16,
 		paddingBottom: 45,
 		flexDirection: "row",
-		// backgroundColor: "red",
-		// elevation: 20,
 	},
     searchInput: {
 		flex: 8,
@@ -374,7 +355,7 @@ const styles = StyleSheet.create({
 		right: 0,
 	},
 	circle: {
-		backgroundColor: '#2665A1',
+		backgroundColor: '#0078d4',
 		justifyContent: 'center',
 		alignItems: 'center',
 		borderRadius: 25,
@@ -410,7 +391,7 @@ const styles = StyleSheet.create({
         marginTop: 30,
     },
 	submit: {
-        backgroundColor: '#2665A1',
+        backgroundColor: '#0078d4',
         justifyContent: 'center',
         alignItems: 'center',
         flex: 1,
@@ -421,5 +402,15 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: 'bold',
         color: '#FFFFFF'
+    },
+    emptyContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        flex: 1,
+        marginTop: 30,
+    },
+    emptyText: {
+        fontSize: 15,
+        fontWeight: '400'
     },
 })

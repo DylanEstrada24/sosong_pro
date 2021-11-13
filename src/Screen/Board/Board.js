@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
 		marginRight: Dimensions.get('window').width / 20,
 		alignItems: "center",
 		justifyContent: "center",
-		borderBottomColor: "#2665A1",
+		borderBottomColor: "#0078d4",
 		borderBottomWidth: 1,
 		paddingBottom: 13,
 		marginBottom: 10,
@@ -110,6 +110,6 @@ const styles = StyleSheet.create({
 	},
 	replyText: {
 		fontSize: 15,
-		color: "#2665A1",
+		color: "#0078d4",
 	}
 });

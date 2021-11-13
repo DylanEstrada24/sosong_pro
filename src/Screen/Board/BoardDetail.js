@@ -42,10 +42,10 @@ class BoardWrite extends Component {
 				</ScrollView>
 				<View style={styles.insertContainer}>
 					<View style={styles.replyInputContainer}>
-						<TextInput style={styles.replyInput} placeholder="댓글을 입력하세요." />
+						<TextInput style={styles.replyInput} placeholder="댓글을 입력하세요." placeholderTextColor="#808080" />
 					</View>
 					<View style={styles.buttonContainer}>
-						<Button style={styles.insertButton} color="#2665A1" title="입력" />
+						<Button style={styles.insertButton} color="#0078d4" title="입력" />
 					</View>
 				</View>
 			</View>
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
 	},
 	replyText: {
 		fontSize: 15,
-		color: "#2665A1",
+		color: "#0078d4",
 	},
 	loginButton: {
 		width: '100%',
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 	},
 	buttonContainer: {
-		backgroundColor: "#2665A1",
+		backgroundColor: "#0078d4",
 		width: "20%",
 		// height: 36,
 		// borderRadius: 12,

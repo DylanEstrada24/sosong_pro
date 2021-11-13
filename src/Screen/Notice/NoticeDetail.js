@@ -4,10 +4,13 @@ import {
 	Text,
 	StyleSheet,
 	Dimensions,
+	TouchableOpacity
 } from 'react-native';
 
+import SimpleToast from 'react-native-simple-toast';
+import moment from 'moment';
+import HeaderText from '../../Components/HeaderText';
 import { commonApi } from '../../Common/ApiConnector';
-
 import { store } from '../../redux/store';
 
 class NoticeDetail extends Component {
@@ -20,31 +23,38 @@ class NoticeDetail extends Component {
 			title: '',
 			idx: '',
 		})
+
+		this.deleteNotice = this.deleteNotice.bind(this)
 	}
 
 
-	async componentDidMount() {
+	componentDidMount() {
 
-		const noticeIdx = this.props.navigation.getParam('idx')
+		const notice = this.props.navigation.getParam('notice')
 
-		commonApi('GET', `admin/notice/noticeIdx/${noticeIdx}`, {}).then((result) => {
-			
+		this.setState({
+			content: notice.content,
+			createAt: moment(notice.createAt).add('9', 'h').toISOString(),
+			updateAt: moment(notice.updateAt).add('9', 'h').toISOString(),
+			title: notice.title,
+			idx: notice.idx,
+		})
+
+	}
+
+	deleteNotice() {
+		commonApi('DELETE', `admin/notice/${this.state.idx}`, {}).then((result) => {
+
 			if(result.success) {
-				
-				// console.log(result, 'asdsa')
-				
-				this.setState({
-					content: result.data[0].content,
-					createAt: result.data[0].createAt,
-					updateAt: result.data[0].updateAt,
-					title: result.data[0].title,
-					idx: result.data[0].idx
-				})
+				SimpleToast.show("공지사항이 삭제되었습니다.", SimpleToast.BOTTOM)
 
+				this.props.navigation.pop()
+			} else {
+				SimpleToast.show(result.msg, SimpleToast.BOTTOM)
 			}
 
-		}).catch((err) => console.log(`admin/notice/noticeIdx/${noticeIdx}`, err))
-
+		// }).catch((err) => console.log(`admin/notice/${this.state.idx}`, err))
+		}).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 	}
 
 	
@@ -52,14 +62,18 @@ class NoticeDetail extends Component {
 		return (
 			<View style={{flexDirection: "column", flex: 1}}>
 				<View style={styles.headerContainer}>
-					<HeaderText title='공지사항' />
-					{
-						store.getParam().user.email === 'admin@admin.com' ? (
-							<TouchableOpacity style={{}}>
-								<Text>삭제</Text>
-							</TouchableOpacity>
-						) : (<></>)
-					}
+					<View style={styles.headerLeft}>
+						<HeaderText title='공지사항' />
+					</View>
+					<View style={styles.headerRight}>
+						{
+							store.getState().user.email === 'admin@admin.com' ? (
+								<TouchableOpacity style={styles.addContainer} onPress={() => this.deleteNotice()}>
+									<Text style={styles.addText}>삭제</Text>
+								</TouchableOpacity>
+							) : (<></>)
+						}
+					</View>
 				</View>
 				<View style={{flex: 0.85, width: "90%", marginLeft: "5%", marginRight: "5%", marginBottom: 5,}}>
 					<View style={styles.itemContainer}>
@@ -89,19 +103,28 @@ export default NoticeDetail
 
 const styles = StyleSheet.create({
 	headerContainer: {
-		flex: 0.075,
-		flexDirection: "row",
-		justifyContent: "flex-start",
-		alignItems: "flex-end",
-		// paddingBottom: 20,
-		marginBottom: 10,
+        marginBottom: 15,
+		marginTop: 10,
+		flexDirection: 'row',
+		justifyContent: "space-between",
+		alignItems: 'flex-start',
+		borderBottomColor: "#C4C4C4",
+		borderBottomWidth: 1,
+		paddingBottom: 5,
+	},
+	headerLeft: {
+        marginLeft: Dimensions.get('window').width / 20
+	},
+	headerRight: {
+		flexDirection: 'row',
+        marginRight: Dimensions.get('window').width / 20,
 	},
 	replyContainer: {
 		marginRight: "5%",
 	},
 	replyText: {
 		fontSize: 15,
-		color: "#2665A1",
+		color: "#0078d4",
 	},
 	loginButton: {
 		width: '100%',
@@ -112,8 +135,7 @@ const styles = StyleSheet.create({
 		marginLeft: "10%",
 	},
 	titleContainer: {
-		// flexDirection: 'row',
-		// justifyContent: 'space-between'
+
 	},
 	title: {
 		width: "100%",
@@ -134,7 +156,7 @@ const styles = StyleSheet.create({
 	},
 	date: {
 		fontSize: 14,
-		color: '#2665A1',
+		color: '#0078d4',
 		fontWeight: '400',
 	},
 	contentContainer: {
@@ -144,11 +166,20 @@ const styles = StyleSheet.create({
 		marginTop: 16,
 		marginLeft: "auto",
 		marginRight: "auto",
-		// height: Dimensions.get("window").height / 3,
-		// height: 'auto',
 		paddingBottom: 20,
 	},
 	contentText: {
 		fontSize: 13,
+	},
+	addContainer: {
+		justifyContent: 'center',
+		alignItems: 'center',
+		marginRight: 18,
+		marginTop: 3,
+	},
+	addText: {
+		fontSize: 15,
+		fontWeight: 'bold',
+		color: '#0078d4'
 	},
 })

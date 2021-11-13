@@ -6,11 +6,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import user from './reducers/user';
 import cases from './reducers/cases';
 import notice from './reducers/notice';
+import schedule from './reducers/schedule';
+import latest from './reducers/latest';
 
 const reducer = combineReducers({
 	user,
 	cases,
 	notice,
+	schedule,
+	latest,
 });
 
 const persistConfig = {
@@ -20,6 +24,8 @@ const persistConfig = {
 		'user',
 		'cases',
 		'notice',
+		'schedule',
+		'latest',
 	],
 	blacklist: [],
 };

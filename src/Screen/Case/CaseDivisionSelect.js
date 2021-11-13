@@ -9,10 +9,7 @@ import {
 	Dimensions,
 } from 'react-native';
 
-// import BlueDot from '../../Components/BlueDot';
-import SettingItem from '../Setting/SettingItem';
-import {Collapse, CollapseHeader, CollapseBody, AccordionList} from 'accordion-collapse-react-native';
-import CheckBox from '@react-native-community/checkbox';
+import {Collapse, CollapseHeader, CollapseBody} from 'accordion-collapse-react-native';
 
 class CourtSelect extends Component {
 
@@ -53,7 +50,7 @@ class CourtSelect extends Component {
 					<View style={styles.contentContainer}>
                         {/* 검색창 */}
 						<View style={styles.content}>
-                            <TextInput style={styles.textInput} placeholder="검색어를 입력하세요." />
+                            <TextInput style={styles.textInput} placeholder="검색어를 입력하세요." placeholderTextColor="#808080" />
 							<TouchableOpacity>
 								<Image source={require('../../assets/images/MagnifyingGlass.png')} />
 							</TouchableOpacity>
@@ -146,8 +143,8 @@ const styles = StyleSheet.create({
 	header: {
 		width: '100%',
 		flexDirection: 'column',
-		marginTop: 20,
-		borderBottomColor: '#2665A1',
+		marginTop: 10,
+		borderBottomColor: '#0078d4',
 		borderBottomWidth: 1,
 		paddingBottom: 5,
 	},
@@ -175,7 +172,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-		// marginBottom: 10,
 		paddingBottom: 10,
 		borderBottomColor: '#C4C4C4',
 		borderBottomWidth: 1,
@@ -184,7 +180,6 @@ const styles = StyleSheet.create({
 	textInput: {
 		backgroundColor: '#E5E5E5',
 		borderRadius: 5,
-		// height: 32,
 		paddingLeft: 19,
 		width: '90%',
 	},
@@ -205,7 +200,7 @@ const styles = StyleSheet.create({
 		paddingRight: 10,
 		paddingTop: 5,
 		paddingBottom: 5,
-		borderColor: '#2665A1',
+		borderColor: '#0078d4',
 		borderWidth: 1,
 		borderRadius: 10,
 		margin: 3,
@@ -213,7 +208,7 @@ const styles = StyleSheet.create({
 	buttonText: {
 		fontSize: 13,
 		fontWeight: 'bold',
-		color: '#2665A1',
+		color: '#0078d4',
 	},
 	bottomLine: {
 		borderBottomColor: "#C4C4C4",
@@ -225,25 +220,22 @@ const styles = StyleSheet.create({
 		marginRight: Dimensions.get('window').width / 20,
 	},
 	categoryButton: {
-        // backgroundColor: "#2665A1",
+
     },
     categoryHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: "center",
-        // margin: 15,
         marginTop: 5,
         marginBottom: 5,
         height: 30,
     },
     categoryTitle: {
-        color: '#2665A1',
+        color: '#0078d4',
         fontSize: 15,
         fontWeight: "bold",
-        // paddingLeft: 16,
     },
     categoryImage: {
         marginRight: 10,
-        // color: "#FFFFFF",
     },
 })

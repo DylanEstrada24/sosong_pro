@@ -51,6 +51,7 @@ export async function commonApi(type, url, params) {
                 resultData = response.data;
             })
             .catch((error) => {
+                console.log('common')
                 resultData = errorClassifier(error.response)
             });
     } else if (type == 'post' || type == 'POST') {
@@ -159,7 +160,8 @@ function errorClassifier(error) {
 async function resultDataChecker(resultData, type, url, params) {
 
     // 만약 호출이 401에러가 발생하면 토큰 갱신 후 해당 요청을 재귀시킴.
-    if (resultData == 'expired token') {
+    // if (resultData == 'expired token') {
+    if (resultData.msg == 'token is expired') {
 
         // 무한재귀를 막는 스위치
         var isFinishRecursive = false;
@@ -283,6 +285,7 @@ async function authApi() {
             }
         })
         .catch((error) => {
+            console.log(error)
             //토큰 갱신 실패시 (ex.리프레시 토큰의 만료 등) 로그인 화면으로 강제 이동
             SimpleToast.show('토큰갱신실패 로그인화면으로 이동합니다.', SimpleToast.SHORT);
             NavigationService.navigate('LoginScreen');

@@ -48,10 +48,13 @@ class TerminSetting extends Component {
                     })
                     SimpleToast.show("알림시간이 변경되었습니다.", SimpleToast.BOTTOM)
                     this.props.navigation.pop()
+                } else {
+                    SimpleToast.show(result.msg, SimpleToast.BOTTOM)
                 }
             }
 
-        }).catch((err) => console.log(`user/pushSetting/${time}`, err))
+        // }).catch((err) => console.log(`user/pushSetting/${time}`, err))
+        }).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 
     }
 
@@ -69,7 +72,7 @@ class TerminSetting extends Component {
                                 value="today"
                                 status={ this.state.checked === 'today' ? 'checked' : 'unchecked' }
                                 onPress={() => this.setState({ checked: 'today' })}
-                                color="#2665A1"
+                                color="#0078d4"
                             />
                             <Text>당일</Text>
                         </View>
@@ -78,7 +81,7 @@ class TerminSetting extends Component {
                                 value="yesterday"
                                 status={ this.state.checked === 'yesterday' ? 'checked' : 'unchecked' }
                                 onPress={() => this.setState({ checked: 'yesterday' })}
-                                color="#2665A1"
+                                color="#0078d4"
                             />
                             <Text>전일</Text>
                         </View>
@@ -157,7 +160,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(TerminSetting);
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        margin: 15,
+        margin: 10,
         flexDirection: 'column',
 
     },
@@ -201,7 +204,7 @@ const styles = StyleSheet.create({
         borderRadius: 3,
     },
     submit: {
-        backgroundColor: '#2665A1',
+        backgroundColor: '#0078d4',
         justifyContent: 'center',
         alignItems: 'center',
         flex: 1,

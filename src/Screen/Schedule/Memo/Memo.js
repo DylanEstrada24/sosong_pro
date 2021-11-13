@@ -6,32 +6,28 @@ import {
     StyleSheet
 } from 'react-native';
 
+import moment from 'moment';
+
 class Memo extends Component {
     render() {
         return (
-            // <View style={styles.memoContainer}>
-            //     <View style={{flex: 1,}}>
-            //         <Text />
-            //     </View>
-            //     <View style={styles.contentContainer}>
-            //         <View style={styles.topContainer}>
-            //             <Text style={styles.date}>2021.04.30</Text>
-            //         </View>
-            //         <View style={styles.bottomContainer}>
-            //             <Text style={styles.content}>-서울 중앙지법에서 의뢰인과 미팅예정.</Text>
-            //             <Text style={styles.content}>-미팅 전날 문자요청.</Text>
-            //         </View>
-            //     </View>
-            // </View>
             <View style={styles.detailContainer}>
                 <View style={styles.topContainer}>
-                    <View>
-                        <Text style={styles.date}>{this.props.updateAt}</Text>
+                    <View style={styles.caseTitle}>
+                        <Text style={styles.caseTitleText}>{this.props.data.caseTitle}</Text>
+                    </View>
+                    <View style={styles.memoDate}>
+                        {/* <Text style={styles.date}>{this.props.data.updateAt.split(":")[0].slice(-2)}:{this.props.data.updateAt.split(":")[1].slice(0, 2)}</Text> */}
+                        <Text style={styles.date}>{moment.tz(this.props.data.settingAt, 'Asia/Seoul').utc(9).format("HH:mm")}</Text>
+                        {/* <Text style={styles.date}>{this.props.data.settingAt}</Text> */}
                     </View>
                 </View>
                 <View style={styles.bottomContainer}>
-                    <View>
-                        <Text style={styles.content}>{this.props.content}</Text>
+                    <View style={styles.contentContainer}>
+                        <Text style={styles.memoTitle}>{this.props.data.memoTitle}</Text>
+                    </View>
+                    <View style={styles.contentContainer}>
+                        <Text style={styles.content}>{this.props.data.content}</Text>
                     </View>
                 </View>
             </View>
@@ -42,78 +38,53 @@ class Memo extends Component {
 export default Memo;
 
 const styles = StyleSheet.create({
-    // memoContainer: {
-    //     flex: 1,
-    //     borderWidth: 1,
-    //     borderColor: '#2665A1',
-    //     borderRadius: 10,
-    //     flexDirection: "row",
-    //     marginTop: 5,
-    //     marginBottom: 5,
-    // },
-    // contentContainer: {
-    //     flex: 9,
-    //     paddingTop: 18,
-    //     paddingBottom: 18,
-    //     paddingLeft: 30,
-    //     borderLeftColor: "#1CAA99", // 사용자가 설정한 컬러로 ?
-    //     borderLeftWidth: 5,
-    //     flexDirection: 'column',
-    //     justifyContent: 'center',
-    //     alignItems: 'flex-start',
-    // },
-    // topContainer: {
-    //     justifyContent: "center",
-    //     alignItems: "flex-start",
-    //     marginBottom: 5,
-    // },
-    // date: {
-    //     fontSize: 15,
-    //     fontWeight: "bold",
-    //     color: "#2665A1",
-    // },
-    // bottomContainer: {
-    //     justifyContent: "center",
-    //     alignItems: "flex-start",
-    //     marginTop: 5,
-    // },
-    // content: {
-    //     fontSize: 15,
-    // },
     detailContainer: {
-        // backgroundColor: `${props => props.isOdd ? '#FFFFFF' : '#DEE6F1'}`,
-        width: '90%',
-        padding: 10,
-        flexDirection: 'column',
-        justifyContent: "space-between",
-        // alignItems: "center",
-        borderBottomColor: "#2665A1",
-        // borderTopColor: "#2665A1",
-        borderBottomWidth: 1,
-        // borderTopWidth: 1,
+        flex: 1,
+        width: "100%",
+        marginLeft: "5%",
+        marginRight: "5%",
+        justifyContent: "space-around",
+        alignItems: "flex-start",
+        borderColor: "#0078d4",
+        borderWidth: 1,
+        borderStyle: "solid",
+        borderRadius: 5,
+        marginTop: 5,
+        marginBottom: 5,
+        paddingTop: 5,
+        paddingBottom: 10,
     },
     topContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
+        flex: 3,
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
-    date: {
-        fontSize: 13,
-        fontWeight: 'bold',
-        color: "#5E8CCF",
+    caseTitle: {
+        marginLeft: 10,
     },
-    content: {
-        fontSize: 13,
-        // fontWeight: 'bold',
-        // color: "#D5722E",
+    caseTitleText: {
+        fontSize: 16,
+        fontWeight: "bold",
+        marginTop: 4,
+    },
+    memoDate: {
+        marginRight: 10,
     },
     bottomContainer: {
-        marginTop: 5,
-        justifyContent: "flex-start",
-        alignItems: "flex-start",
+        justifyContent: 'center',
     },
-    result: {
+    contentContainer: {
+        marginLeft: 10,
+    },
+    memoTitle: {
         fontSize: 13,
-        fontWeight: 'bold',
-        color: '#5C4B77',
+        fontWeight: '700',
+        color: '#0078D4',
+    },
+    content: {
+        fontSize: 15,
+        fontWeight: "400",
     },
 });

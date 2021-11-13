@@ -70,7 +70,7 @@ const TabNavigator = createMaterialTopTabNavigator(
                 backgroundColor: "#FFFFFF",
             },
             indicatorStyle: {
-                backgroundColor: "#2665A1",
+                backgroundColor: "#0078d4",
             },
             activeTintColor: '#000',
             inactiveTintColor: '#C7C7C7'

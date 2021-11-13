@@ -9,18 +9,14 @@ import {
 	Dimensions,
 } from 'react-native';
 
-// import BlueDot from '../../Components/BlueDot';
-import SettingItem from '../Setting/SettingItem';
-
-import CheckBox from '@react-native-community/checkbox';
 import { connect } from 'react-redux';
 import { setCase } from '../../redux/actions/cases';
 import moment from 'moment';
 
 class YearSelect extends Component {
 
-	constructor() {
-        super()
+	constructor(props) {
+        super(props)
         this.state = {
 			year: '',
         }
@@ -29,10 +25,6 @@ class YearSelect extends Component {
     }
 
 	yearHandler(year) {
-		// const cases = {
-		// 	year: year,
-		// }
-
 		this.props.setCase({
 			year: year,
 		})
@@ -41,21 +33,19 @@ class YearSelect extends Component {
 	}
 
 	render() {
-
-		let years = Array(23).fill().map((arr, i) => {
-			return i + 1998
+		let years = Array(28).fill().map((arr, i) => {
+			return 2025 - i
 		})
 
-		console.log(years)
 
 		let thisYear = moment(new Date())
-		let year2020 = moment([2020, 0, 1])
+		let year2025 = moment([2025, 0, 1])
 
-		let diff = thisYear.diff(year2020, 'years')
+		let diff = thisYear.diff(year2025, 'years')
 
 		if(diff > 0) {
 			for(let i = 1; i <= diff; i++) {
-				years = years.concat(2020 + i)
+				years = [2025 + i, ...years]
 			}
 		}
 
@@ -63,12 +53,12 @@ class YearSelect extends Component {
 			<View style={styles.container}>
 				<View style={styles.Top}>
 					<View style={styles.header}>
-						<TouchableOpacity style={styles.exit} onPress={() => this.props.navigation.pop()} >
-							<Image source={require('../../assets/images/X.png')} />
-						</TouchableOpacity>
 						<View style={styles.title}>
 							<Text style={styles.titleText}>사건년도 선택</Text>
 						</View>
+						<TouchableOpacity style={styles.exit} onPress={() => this.props.navigation.pop()} >
+							<Image source={require('../../assets/images/X.png')} />
+						</TouchableOpacity>
 					</View>
 					<View style={styles.contentContainer}>
 						{
@@ -104,15 +94,16 @@ const styles = StyleSheet.create({
 	},
 	header: {
 		width: '100%',
-		flexDirection: 'column',
-		marginTop: 20,
-		borderBottomColor: '#2665A1',
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		marginTop: 10,
+		borderBottomColor: '#C4C4C4',
 		borderBottomWidth: 1,
 		paddingBottom: 5,
-		marginBottom: 8,
 	},
 	exit: {
-		marginLeft: 15,
+		// marginLeft: 15,
+		marginRight: 10,
 	},
 	title: {
 
@@ -130,36 +121,36 @@ const styles = StyleSheet.create({
 		// alignItems: 'center',
 		// marginLeft: Dimensions.get('window').width / 20,
 		// marginRight: Dimensions.get('window').width / 20,
-		// marginTop: 3,
+		marginTop: 20,
 	},
 	buttonContainer: {
 
 	},
 	button: {
-		borderColor: '#2665A1',
-		borderWidth: 2,
+		borderColor: '#0078d4',
+		borderWidth: 1,
 		// padding: (20, 10),
-		paddingTop: 8,
-		paddingBottom: 8,
+		paddingTop: 5,
+		paddingBottom: 5,
 		paddingLeft: 18,
 		paddingRight: 18,
-		borderRadius: 3,
+		borderRadius: 5,
 		margin: 8,
 	},
 	buttonText: {
 		fontSize: 15,
-		fontWeight: 'bold',
-		color: '#2665A1',
+		// fontWeight: 'bold',
+		// color: '#0078d4',
 	},
 	buttonSelected: {
-		backgroundColor: '#2665A1',
-		borderColor: '#2665A1',
-		borderWidth: 2,
-		paddingTop: 8,
-		paddingBottom: 8,
+		backgroundColor: '#0078d4',
+		borderColor: '#0078d4',
+		borderWidth: 1,
+		paddingTop: 5,
+		paddingBottom: 5,
 		paddingLeft: 18,
 		paddingRight: 18,
-		borderRadius: 3,
+		borderRadius: 5,
 		margin: 8,
 	},
 	buttonSelectedText: {

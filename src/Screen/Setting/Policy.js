@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
 	},
 	replyText: {
 		fontSize: 15,
-		color: "#2665A1",
+		color: "#0078d4",
 	},
 	loginButton: {
 		width: '100%',

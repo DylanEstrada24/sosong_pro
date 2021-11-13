@@ -13,12 +13,17 @@ const defaultState = {
 	fcmToken:  '',
 	saveId: false,
 	savePassword: false,
-	sort: 'ASC',
-	tempSort: 'ASC',
+	sort: 'title',
+	tempSort: 'title',
+	url: 'user/case/userIdx/title/ASC',
+	// sort: 'ASC',
+	// tempSort: 'ASC',
 	userType: 'common',
 	name: '',
 	pushSetting: '',
 	userIdx: '',
+	autoLogin: false,
+	receipt: '',
 };
 
 function reducer(state = defaultState, {type, payload}) {

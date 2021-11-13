@@ -6,10 +6,12 @@ import {
 	TouchableOpacity,
 	StyleSheet,
 	BackHandler,
+	Dimensions,
+	ScrollView
 } from 'react-native';
 
 import SettingItem from './SettingItem';
-
+import NavigationService from '../../Navigation/NavigationService';
 import { store } from '../../redux/store';
 import { commonApi } from '../../Common/ApiConnector';
 import { setUser, clearUser } from '../../redux/actions/user';
@@ -55,7 +57,7 @@ class Setting extends Component {
 			})
 
 			// console.log(this.state.info)
-		})
+		}).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 
 
 	}
@@ -67,7 +69,9 @@ class Setting extends Component {
 
 	logout() {
 		this.props.clearUser()
-		this.props.navigation.pop()
+		// this.props.navigation.pop()
+		// NavigationService.push('LoginScreen');
+		this.props.navigation.navigate('LoginScreen')
 	}
 
 	handleBackButton = () => {
@@ -101,54 +105,79 @@ class Setting extends Component {
 		const payInfo = store.getState().user.userType === 'common' ? '멤버십 등록' : '멤버십 확인'
 
 		return (
-			<View style={styles.settingContainer}>
-				<View style={styles.itemListContainer}>
-					<View style={styles.itemContainer, styles.bottomLine}>
-						{/* <SettingItem title={this.state.info.email + "님"} content="일반회원" topItem /> */}
-						<SettingItem title={`${this.state.info.name}님`} content={userType} topItem />
+			<View style={{flex: 1}}>
+				<View style={styles.headerContainer}>
+					{/* <View style={styles.backButton}>
+						<Image source={require('../../assets/images/CaretLeft.png')} />
+					</View> */}
+					<View style={styles.headerLeft}>
+						<Text style={styles.writeToDoTitle}>
+							설정
+						</Text>
 					</View>
-					<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('Profile')}>
-						<SettingItem title="내정보 변경" content="변경하기" isMore />
-					</TouchableOpacity>
-					<TouchableOpacity style={styles.itemContainer} onPress={() => this.props.navigation.navigate('TerminSetting')}>
-						<SettingItem title="기일 알림 설정" isMore />
-					</TouchableOpacity>
-					{/* <TouchableOpacity style={styles.itemContainer}>
-						<SettingItem title="업무관련직 인증" content="인증하기" isMore />
-					</TouchableOpacity> */}
-					{/* <TouchableOpacity style={styles.itemContainer}>
-						<SettingItem title="변호사 인증" content="인증하기" isMore />
-					</TouchableOpacity> */}
+					<View style={styles.headerRight}>
+					</View>
 				</View>
-				<View style={styles.itemListContainer}>
-					<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('PremiumMembership')}>
-						<SettingItem title="멤버십 등록/확인" isMore />
-					</TouchableOpacity>
-				</View>
-				<View style={styles.itemListContainer}>
-					<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('Notice')}>
-						<SettingItem title="공지사항" isMore />
-					</TouchableOpacity>
-				</View>
-				<View style={styles.itemListContainer}>
-					<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('License')}>
-						<SettingItem title="서비스 이용약관" isMore />
-					</TouchableOpacity>
-					<TouchableOpacity style={styles.itemContainer} onPress={() => this.props.navigation.navigate('Policy')}>
-						<SettingItem title="개인정보 보호 약관" isMore />
-					</TouchableOpacity>
-				</View>
-				<View style={styles.itemListContainer}>
-					<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('CustomerService')}>
-						<SettingItem title="고객센터" isMore />
-					</TouchableOpacity>
-					<TouchableOpacity style={styles.itemContainer} onPress={() => this.props.navigation.navigate('Help')}>
-						<SettingItem title="자주묻는 질문" isMore />
-					</TouchableOpacity>
-				</View>
-				<TouchableOpacity style={styles.buttonContainer} onPress={() => this.logout()}>
-					<Button style={styles.logout} color="#2665A1" title="로그아웃" onPress={() => this.logout()}/>
-				</TouchableOpacity>
+				<ScrollView contentContainerStyle={{flexGrow: 1, justifyContent: 'center'}}>
+					<View style={styles.settingContainer}>
+						<View style={styles.itemListContainer}>
+							<View style={styles.itemContainer, styles.bottomLine}>
+								{/* <SettingItem title={this.state.info.email + "님"} content="일반회원" topItem /> */}
+								<SettingItem title={`${this.state.info.name}`} content={userType} topItem />
+							</View>
+							<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('CheckUser')}>
+								<SettingItem title="내정보 변경" content="변경하기" isMore />
+							</TouchableOpacity>
+							
+							{/* <TouchableOpacity style={styles.itemContainer}>
+								<SettingItem title="업무관련직 인증" content="인증하기" isMore />
+							</TouchableOpacity> */}
+							{/* <TouchableOpacity style={styles.itemContainer}>
+								<SettingItem title="변호사 인증" content="인증하기" isMore />
+							</TouchableOpacity> */}
+						</View>
+						<View style={styles.itemListContainer}>
+							<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('PremiumMembership')}>
+								<SettingItem title="멤버십 관리" isMore />
+							</TouchableOpacity>
+						</View>
+						<View style={styles.itemListContainer}>
+							<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('Notice')}>
+								<SettingItem title="공지사항" isMore />
+							</TouchableOpacity>
+							<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('Help')}>
+								<SettingItem title="자주묻는 질문" isMore />
+							</TouchableOpacity>
+							<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('CustomerService')}>
+								<SettingItem title="고객센터" isMore />
+							</TouchableOpacity>
+						</View>
+						{/* <View style={styles.itemListContainer}>
+							<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('TerminAllSetting')}>
+								<SettingItem title="기일 알림 설정" isMore />
+							</TouchableOpacity>
+						</View> */}
+
+						{/* 전일/당일 기일알림설정 부분입니다 */}
+
+						{/* <View style={styles.itemListContainer}>
+							<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('TerminSetting')}>
+								<SettingItem title="기일 알림 설정" isMore />
+							</TouchableOpacity>
+						</View> */}
+						<View style={styles.itemListContainer}>
+							<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('License')}>
+								<SettingItem title="약관 등 법적 고지" isMore />
+							</TouchableOpacity>
+							{/* <TouchableOpacity style={styles.itemContainer} onPress={() => this.props.navigation.navigate('Policy')}>
+								<SettingItem title="개인정보 보호 약관" isMore />
+							</TouchableOpacity> */}
+						</View>
+						<TouchableOpacity style={styles.buttonContainer} onPress={() => this.logout()}>
+							<Button style={styles.logout} color="#0078d4" title="로그아웃" onPress={() => this.logout()}/>
+						</TouchableOpacity>
+					</View>
+				</ScrollView>
 			</View>
 		);
 	}
@@ -167,6 +196,27 @@ const mapDispatchToProps = {
 export default connect(mapStateToProps, mapDispatchToProps)(Setting)
 
 const styles = StyleSheet.create({
+	headerContainer: {
+		marginTop: 10,
+        marginBottom: 15,
+		flexDirection: 'row',
+		justifyContent: "space-between",
+		alignItems: 'flex-start',
+		// justifyContent: 'flex-start',
+		borderBottomColor: "#C4C4C4",
+		borderBottomWidth: 1,
+		paddingBottom: 2,
+	},
+	headerLeft: {
+        marginLeft: Dimensions.get('window').width / 20
+	},
+	writeToDoTitle: {
+        fontSize: 20,
+        fontWeight: "700",
+    },
+	headerRight: {
+        marginRight: Dimensions.get('window').width / 20
+	},
 	settingContainer: {
 		flex: 1,
 		width: '100%',
@@ -183,6 +233,8 @@ const styles = StyleSheet.create({
 	buttonContainer: {
 		justifyContent: 'center',
 		width: "80%",
+		marginTop: 50,
+		marginBottom: 50
 	},
 	logout: {
 		width: '100%',

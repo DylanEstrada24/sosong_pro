@@ -34,7 +34,7 @@ class BoardWrite extends Component {
 								<Text style={styles.subTitleText} >제목</Text>
 							</View>
 							<View style={styles.contentContainer}>
-								<TextInput style={styles.titleInput} placeholder="제목을 입력하세요." ></TextInput>
+								<TextInput style={styles.titleInput} placeholder="제목을 입력하세요."  placeholderTextColor="#808080" ></TextInput>
 							</View>
 						</View>
 						<View style={styles.inputContent}>
@@ -43,13 +43,13 @@ class BoardWrite extends Component {
 								<Text style={styles.subTitleText} >내용</Text>
 							</View>
 							<View style={styles.contentContainer}>
-								<TextInput style={styles.contentInput} multiline={true} placeholder="내용을 입력하세요."></TextInput>
+								<TextInput style={styles.contentInput} multiline={true} placeholder="내용을 입력하세요." placeholderTextColor="#808080" ></TextInput>
 							</View>
 						</View>
 					</View>
 				</View>
 				<View style={{flex: 0.1, width: "80%", marginLeft: "10%", justifyContent: 'center', marginBottom: 30,}}>
-					<Button style={styles.loginButton} onPress={() => this.props.navigation.pop()} color="#2665A1" title="등록" />
+					<Button style={styles.loginButton} onPress={() => this.props.navigation.pop()} color="#0078d4" title="등록" />
 				</View>
 			</View>
 		);

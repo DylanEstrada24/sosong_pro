@@ -1,17 +1,20 @@
 
 import 'react-native-gesture-handler';
 import React from 'react';
-import {YellowBox} from 'react-native-keyboard-aware-scroll-view'
+import {YellowBox} from 'react-native';
 
 import {createAppContainer} from 'react-navigation';
 import {createBottomTabNavigator} from 'react-navigation-tabs';
 import { createStackNavigator } from 'react-navigation-stack';
+import {NavigationActions} from 'react-navigation';
+import NavigationService from './Navigation/NavigationService';
 
 import Login from './Screen/Login';
 import Enroll from './Screen/Enroll';
 import Case from './Screen/Case';
 import ToDo from './Screen/ToDo';
 import WriteToDo from './Screen/ToDo/WriteToDo';
+import ToDoExplan from './Screen/ToDo/ToDoExplan';
 import Board from './Screen/Board';
 import BoardWrite from './Screen/Board/BoardWrite';
 import BoardDetail from './Screen/Board/BoardDetail';
@@ -23,13 +26,16 @@ import Schedule from './Screen/Schedule';
 import CaseDetail from './Screen/Case/CaseDetail';
 import NameSetting from './Screen/Setting/NameSetting';
 import TerminSetting from './Screen/Setting/TerminSetting';
+import TerminAllSetting from './Screen/Setting/TerminAllSetting';
 import CaseAdd from './Screen/Case/CaseAdd';
 import CaseAddSubstitute from './Screen/Case/CaseAddSubstitute';
 import CustomerService from './Screen/Setting/CustomerService';
 import Profile from './Screen/Setting/Profile';
+import CheckUser from './Screen/Setting/CheckUser';
 import WriteMemo from './Screen/Case/Detail/WriteMemo';
 import CourtSelect from './Screen/Case/CourtSelect';
 import YearSelect from './Screen/Case/YearSelect';
+import MarkSelect from './Screen/Case/MarkSelect';
 import Alarm from './Screen/Alarm';
 import Memo from './Screen/Memo';
 import Notice from './Screen/Notice';
@@ -48,6 +54,15 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import PushNotification from 'react-native-push-notification';
 import { AppState } from 'react-native';
 import PushController from './Common/PushController';
+import SplashScreen from 'react-native-splash-screen'
+import FindPwd from './Screen/FindPwd';
+import EnrollForm from './Screen/Enroll/EnrollForm';
+import AgeInfo from './Screen/Enroll/Termin/AgeInfo';
+import Term from './Screen/Enroll/Termin/Term';
+import Termin from './Screen/Enroll/Termin/Termin';
+import Service from './Screen/Enroll/Termin/Service';
+import Jeonja from './Screen/Case/Jeonja';
+import LoadingScreen from './Screen/SplashScreen';
 // import dynamicLinks from '@react-native-firebase/dynamic-links';
 // import NavigationService from '@app/navigation/NavigationService';
 
@@ -59,39 +74,51 @@ const TabNavigator = createBottomTabNavigator(
 		일정: {
 			screen: Schedule,
 		},
-		ToDo: {
+		작업: {
 			screen: ToDo,
 		},
-		메모: {
-			screen: Memo,
-		},
+		// 메모: {
+		// 	screen: Memo,
+		// },
 		설정: {
 			screen: Setting,
 		}
 	},
 	{
 		defaultNavigationOptions: ({navigation}) => ({
-			tabBarIcon: ({horizontal}) => {
+			tabBarIcon: ({horizontal, tintColor}) => {
 				const {routeName} = navigation.state;
 				let iconName;
 				if (routeName === '사건') {
-					iconName = 'library-outline';
+					iconName = 'documents-outline';
 				} else if (routeName === '일정') {
-					iconName = 'calendar';
-				} else if (routeName === 'ToDo') {
+					iconName = 'calendar-outline';
+				} else if (routeName === '작업') {
 					iconName = 'md-reader-outline';
 				} else if (routeName === '메모') {
 					iconName = 'ios-newspaper-outline';
 				} else if (routeName === '설정') {
-					iconName = 'person-circle-outline';
+					iconName = 'ellipsis-horizontal-outline';
 				}
 				return (
-					<Icon name={iconName} size={25} />
+					<Icon name={iconName} size={25} color={tintColor} style={{marginTop: 5}} />
 				)
 			}
 		})
 	}
 )
+
+// var user = store.getState().user
+
+var initialRouteName = 'LoginScreen' // 앱 시작화면
+
+// if((user.saveId === true || user.saveId === 'true') && (user.savePassword === true || user.savePassword === 'true') && user.email !== '' && user.password !== '') {
+// 	console.log('aa')
+// if(user.autoLogin === true || user.autoLogin === 'true') {
+// 	console.log('bbbb')
+// 	initialRouteName = 'TabNavigator'
+// }
+// }
 
 const App = createStackNavigator(
 	{
@@ -155,6 +182,9 @@ const App = createStackNavigator(
 		YearSelect: {
 			screen: YearSelect,
 		},
+		MarkSelect: {
+			screen: MarkSelect,
+		},
 		Alarm: {
 			screen: Alarm,
 		},
@@ -182,9 +212,39 @@ const App = createStackNavigator(
 		WriteNotice: {
 			screen: WriteNotice,
 		},
+		FindPwd: {
+			screen: FindPwd,
+		},
+		EnrollForm: {
+			screen: EnrollForm
+		},
+		AgeInfo: {
+			screen: AgeInfo
+		},
+		Term: {
+			screen: Term
+		},
+		Termin: {
+			screen: Termin
+		},
+		Service: {
+			screen: Service
+		},
+		Jeonja: {
+			screen: Jeonja
+		},
+		TerminAllSetting: {
+			screen: TerminAllSetting,
+		},
+		CheckUser: {
+			screen: CheckUser,
+		},
+		ToDoExplan: {
+			screen: ToDoExplan
+		},
 	},
 	{
-		initialRouteName: 'LoginScreen',
+		// initialRouteName: initialRouteName,
 		headerMode: 'none',
 		defaultNavigationOptions: {
 			cardStyle: {
@@ -201,12 +261,13 @@ const AppContainer = createAppContainer(App);
 
 class Export extends React.Component {
     async componentDidMount() {
-        AppState.addEventListener('change', this.handleAppStateChange);
+        // AppState.addEventListener('change', this.handleAppStateChange);
         // Disabling warning messages box
         console.disableYellowBox = true;
         YellowBox.ignoreWarnings(['Warning:']);
+		setTimeout(() => SplashScreen.hide(), 1000)
+        // SplashScreen.hide();
         // Hiding the React Native SplashScreen
-        SplashScreen.hide();
         console.log('after addEventListener')
     // }
     
@@ -225,10 +286,12 @@ class Export extends React.Component {
                     //     }
                     // })
                     console.log("data get")
-                    NavigationService.push('WalletMain');
+                    NavigationService.push('TabNavigator');
+                    // NavigationService.push('LoginScreen');
                 } else {
                     console.log("else data get")
-                    NavigationService.push('WalletMain');
+                    NavigationService.push('TabNavigator');
+                    // NavigationService.push('LoginScreen');
                 }
                 
             })
@@ -246,7 +309,8 @@ class Export extends React.Component {
             //             //     }
             //             // })
             //             console.log("click push data")
-            //             NavigationService.navigate('WalletMain');
+            //             NavigationService.navigate('TabNavigator');
+                        NavigationService.navigate('LoginScreen');
             //         })
             //     })
         }
@@ -281,57 +345,62 @@ class Export extends React.Component {
             console.log('getInitialNotification from data:',remoteMessage);
             if(remoteMessage.data != {}) {
                 // var linkIdx = remoteMessage.data.idx;
-                NavigationService.push('WalletMain');
+                NavigationService.push('TabNavigator');
+                // NavigationService.push('LoginScreen');
 
             }
         });
         //푸시 설정 끝
     }
 
-    componentWillUnmount() {
+    // componentWillUnmount() {
         // console.log('unmiount')
         // Linking.removeEventListener('url', this.handleOpenURL);
 		// AppState.removeEventListener('change', this.handleAppStateChange)
-    }
+    // }
 
-    handleOpenURL = async event => {
-        console.log('event::::::',event.url)
-        console.log('current state ::',AppState.currentState )
-        if (AppState.currentState == 'background' ||AppState.currentState == 'unknown') {
-            dynamicLinks().resolveLink(event.url).then(response => {
-                // var linkData = (response.url).replace('https://eeumpay.page.link/?', '').split('&')
-                // var linkIdx;
-                // linkData.map((value, index) => {
-                //     var splitKeyValue = value.split('=')
-                //     if (index == 0) {
-                //         linkIdx = splitKeyValue[1]
-                //     }
-                // })
-                console.log("push on")
-                // NavigationService.navigate('PurchaseProductPaymentScreen', { idx: linkIdx });
-            })
-        } 
-    }
+    // handleOpenURL = async event => {
+    //     console.log('event::::::',event.url)
+    //     console.log('current state ::',AppState.currentState )
+    //     if (AppState.currentState == 'background' ||AppState.currentState == 'unknown') {
+    //         dynamicLinks().resolveLink(event.url).then(response => {
+    //             // var linkData = (response.url).replace('https://eeumpay.page.link/?', '').split('&')
+    //             // var linkIdx;
+    //             // linkData.map((value, index) => {
+    //             //     var splitKeyValue = value.split('=')
+    //             //     if (index == 0) {
+    //             //         linkIdx = splitKeyValue[1]
+    //             //     }
+    //             // })
+    //             console.log("push on")
+    //             // NavigationService.navigate('PurchaseProductPaymentScreen', { idx: linkIdx });
+    //         })
+    //     } 
+    // }
 
 
-    handleAppStateChange = nextAppState => {
-        if (AppState.currentState == 'background' || AppState.currentState == 'unknown') {
-			// PushNotification.localNotificationSchedule({
-			// 	message: 'test',
-			// 	date: new Date(Date.now() + 10 * 1000)
-			// })
-          if(store.getState().user.useLock == "Y"){
-              console.log("locked!!!!")
-            NavigationService.navigate("LockScreen",{mode:1,type:'confirm',background : true})
-          }
-        }
-      };
+    // handleAppStateChange = nextAppState => {
+    //     if (AppState.currentState == 'background' || AppState.currentState == 'unknown') {
+	// 		// PushNotification.localNotificationSchedule({
+	// 		// 	message: 'test',
+	// 		// 	date: new Date(Date.now() + 10 * 1000)
+	// 		// })
+    //       if(store.getState().user.useLock == "Y"){
+    //           console.log("locked!!!!")
+    //         NavigationService.navigate("LockScreen",{mode:1,type:'confirm',background : true})
+    //       }
+    //     }
+    //   };
 // const Export = () => {
     render(){
         return (
 			<Provider store={store}>
-				<PersistGate loading={null} persistor={persistor}>
-					<AppContainer />
+				<PersistGate loading={<LoadingScreen />} persistor={persistor}>
+					<AppContainer
+						ref={(navigatorRef) => {
+							NavigationService.setTopLevelNavigator(navigatorRef);
+						}}
+					/>
 				</PersistGate>
 			</Provider>
 		)

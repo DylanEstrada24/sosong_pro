@@ -2,16 +2,10 @@ import React, {Component} from 'react';
 import {
 	View,
     Text,
-	TouchableOpacity,
-	Image,
-	TextInput,
-	ScrollView,
 	StyleSheet,
 } from 'react-native';
 
 import Memo from './Memo';
-import { store } from '../../../redux/store';
-import { commonApi } from '../../../Common/ApiConnector';
 
 class MemoList extends Component {
 

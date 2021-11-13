@@ -7,7 +7,6 @@ import {
 import Notice from './Notice';
 import { connect } from 'react-redux';
 import { setNotice, clearNotice } from '../../redux/actions/notice'
-import { store } from '../../redux/store';
 
 class NoticeList extends Component {
 	constructor(props) {

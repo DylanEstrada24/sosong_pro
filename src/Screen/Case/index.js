@@ -5,24 +5,28 @@ import {
 	TouchableOpacity,
 	Image,
 	TextInput,
-	ScrollView,
 	StyleSheet,
 	FlatList,
 	Keyboard,
 	BackHandler,
+	Dimensions,
+	Alert,
+	Platform
 } from 'react-native';
 
-import CaseList from './CaseList';
+import IconFontisto from 'react-native-vector-icons/Fontisto';
+import Icon from 'react-native-vector-icons/AntDesign';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Modal from 'react-native-modal';
 import { store } from '../../redux/store';
 import { setUser } from '../../redux/actions/user';
 import { setCase, clearCase } from '../../redux/actions/cases';
-import { RadioButton } from 'react-native-paper';
 import { connect } from 'react-redux';
-import { sort } from 'prelude-ls';
 import { commonApi } from '../../Common/ApiConnector';
+import * as RNIap from 'react-native-iap';
 import SimpleToast from 'react-native-simple-toast';
 import CaseComponent from './Case'
+import HeaderText from '../../Components/HeaderText';
 
 class Case extends Component {
 
@@ -37,6 +41,10 @@ class Case extends Component {
 			searchValue: '',
 			tempCases: [],
 			searching: false,
+			deleteModalVisible: false,
+			deleteCaseTitle: '',
+			deleteCaseIdx: 0,
+			url: '',
 		})
 
 		this.toggleModal = this.toggleModal.bind(this)
@@ -46,7 +54,12 @@ class Case extends Component {
 		this.searchItem = this.searchItem.bind(this)
 		this.cancelSearch = this.cancelSearch.bind(this)
 		this.caseHandle = this.caseHandle.bind(this)
+		this.toggleDeleteModal = this.toggleDeleteModal.bind(this)
+		this.caseDelete = this.caseDelete.bind(this)
 		this.loadCasesDidFocused = this.loadCasesDidFocused.bind(this)
+		this.changeNewSort = this.changeNewSort.bind(this)
+		this.caseAddHandle = this.caseAddHandle.bind(this)
+		this.checkReceipt = this.checkReceipt.bind(this)
 	}
 
 	async componentDidMount() {
@@ -54,111 +67,41 @@ class Case extends Component {
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
 
 		const sort = store.getState().user.sort
+		let url = store.getState().user.url
+
+		switch(sort) {
+		case 'todo': 
+			url = `user/case/userIdx/todo/DESC`
+			break
+		case 'termin': 
+			url = `user/case/userIdx/ASC`
+			break
+		default: 
+			url = `user/case/userIdx/title/ASC`
+			break
+		}
 
 
 		this.setState({
 			sort: sort,
 			tempSort: sort,
+			url: url,
 		})
 
-
-		// 일반유저 구분
-		if(store.getState().user.userType !== 'common') {
-
-			
-			this.loadCases(sort);
-			
-			this.props.navigation.addListener("didFocus", () => {
-				this.setState({
-					cases: [],
-					// pageNum: 0,
-				})
-
-				let stateSort = this.state.sort
-
-				if(stateSort === '') {
-					stateSort = sort
-				}
-
-				this.loadCasesDidFocused(stateSort)
-			})
-			
-		} else {
-
+		this.props.navigation.addListener("didFocus", () => {
 			this.setState({
-				cases: [
-					{
-						"userCase": {
-						"caseIdx": 0,
-						"title": "소송프로",
-						"court": "부산지방법원 동부지원",
-						"caseNumber": "2020가소123456",
-						"caseName": " [전자] 임금",
-						"judiciary": " 민사24단독 (전화:780-1337(재판 관련),1307(이행권고결정 및 각종 보정 관련 문의))",
-						"receiptAt": " 2020.12.28",
-						"mergeClassification": " 없음",
-						"fee": " 4,800원",
-						"finalResult": " "
-						},
-						"party": [
-						{
-							"Classification": " 피고",
-							"name": "홍길동"
-						},
-						{
-							"Classification": " 원고",
-							"name": "김개똥"
-						}
-						],
-						"representative": [
-						{
-							"Classification": "원고 소송대리인",
-							"name": "변호사 강변호"
-						}
-						]
-					}
-				]
+				cases: [],
+				// pageNum: 0,
 			})
 
-			this.props.navigation.addListener("didFocus", () => {
-				this.setState({
-					cases: 
-					[
-						{
-							"userCase": {
-								"caseIdx": 0,
-								"title": "소송프로",
-								"court": "부산지방법원 동부지원",
-								"caseNumber": "2020가소123456",
-								"caseName": " [전자] 임금",
-								"judiciary": " 민사24단독 (전화:780-1337(재판 관련),1307(이행권고결정 및 각종 보정 관련 문의))",
-								"receiptAt": " 2020.12.28",
-								"mergeClassification": " 없음",
-								"fee": " 4,800원",
-								"finalResult": " "
-							},
-							"party": [
-								{
-									"Classification": " 피고",
-									"name": "홍길동"
-								},
-								{
-									"Classification": " 원고",
-									"name": "김개똥"
-								}
-							],
-							"representative": [
-								{
-									"Classification": "원고 소송대리인",
-									"name": "변호사 강변호"
-								}
-							]
-						}
-					],
-				})
-			})
+			// 유저 검증 함수
+			this.checkReceipt()
 
-		}
+			// 사건 맨처음 불러오는 함수
+			this.loadCasesDidFocused(url)
+
+		})
+
 	}
 
 	componentWillUnmount() {
@@ -169,26 +112,156 @@ class Case extends Component {
 		})
     }
 
-	async loadCasesDidFocused(sort) {
-		if(store.getState().user.userType === 'common') {
-			commonApi('GET', `user/case/userIdx/${sort}/0`, {}).then((data) => {
-				this.setState({
-					cases: this.state.cases.concat(data),
-					pageNum: 1,
-				})
-			}).catch((err) => console.log('loadCasesDidFocused', err))
+	async checkReceipt() {
+
+		// 유저 결제검증 로직
+		// 상용할때 체크해야함 ... JY
+
+		/*
+
+		let result = false
+
+		// let receipt = ''
+
+		try {
+
+		
+			try {
+				result = await RNIap.initConnection();
+				await RNIap.flushFailedPurchasesCachedAsPendingAndroid();
+				if (result === false) {
+					Alert.alert(ENV.language["couldn't get in-app-purchase information"]);
+					return;
+				}
+			} catch (err) {
+				console.debug('initConnection');
+				console.error(err.code, err.message);
+				// Alert.alert(ENV.language['fail to get in-app-purchase information']);
+			}
+
+			if(result !== false) {
+
+				try {
+					// const availablePurchases = RNIap.getAvailablePurchases()
+					// console.log(availablePurchases)
+					
+					const purchases = await RNIap.getAvailablePurchases()
+
+					console.log(purchases)
+						
+					// receipt = purchases[0].transactionReceipt
+
+					// if(Platform.OS === 'android' && purchases[0].purchaseToken) {
+					// 	receipt = purchases[0].purchaseToken
+					// }
+
+					if(purchases.length !== 0 && purchases[0].autoRenewingAndroid) {
+
+						const params = {
+							userIdx: store.getState().user.userIdx,
+							userType: 'member'
+						}
+
+						await commonApi('POST', `admin/update/user/type`, params).then((result) => {
+                			if(result.success){
+								this.props.setUser({
+									userType: 'member'
+								})
+                			} else {
+								SimpleToast.show(result.message, SimpleToast.SHORT);
+								// this.setState({isFetching: false});
+                			}
+            			}).catch((error) => {
+							SimpleToast.show(error.msg, SimpleToast.BOTTOM)
+            			})
+
+					} else {
+
+						const params = {
+							userIdx: store.getState().user.userIdx,
+							userType: 'common'
+						}
+
+						await commonApi('POST', `admin/update/user/type`, params).then((result) => {
+                			if(result.success){
+								this.props.setUser({
+									userType: 'common'
+								})
+                			} else {
+								SimpleToast.show(result.message, SimpleToast.SHORT);
+								// this.setState({isFetching: false});
+                			}
+            			}).catch((error) => {
+							SimpleToast.show(error.msg, SimpleToast.BOTTOM)
+            			})
+
+					}
+
+				} catch (err) {
+					console.warn(err.code, err.message);
+				}
+
+				// getAvailablePurchases가 성공적으로 호출되어야 검증함
+				// if(receipt !== '') {
+				// 	// 토큰 검증 API
+				// 	await commonApi('GET', `purchase/${receipt}`, {}).then((res) => {
+				// 		console.log('166 ',res)
+				// 		if(res === 'success') {
+				// 			// 구독멤버
+				// 			console.log('member!!')
+				// 			this.props.setUser({
+				// 				userType: 'member'
+				// 			})
+				// 		} else if(res === 'invalid') {
+				// 			console.log('common..')
+				// 			this.props.setUser({
+				// 				userType: 'common'
+				// 			})
+				// 		}
+				// 	}).catch((err) => SimpleToast.show('서버와 연결이 끊어졌습니다. \n나중에 다시 시도해주세요.', SimpleToast.BOTTOM))
+
+				// }
+
+				
+			}
+		} catch (err) {
+			console.log(err)
+		}
+
+		*/
+
+	}
+
+	async loadCasesDidFocused(url) {
+		// if(store.getState().user.userType === 'common') {
+		// 일반유저도 사건 불러와야됨
+		if(true) {
+			await commonApi('GET', `${url}/0`, {}).then((data) => {
+				if(data.length > 0 && data[0].userCase !== undefined) {
+					this.setState({
+						cases: this.state.cases.concat(data),
+						pageNum: 1,
+					})
+				} else {
+					// 사건이 없음
+				}
+			// }).catch((err) => console.log('loadCasesDidFocused', err))
+			}).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 		}
 	}
 	
 	async loadCases(sort) {
 
-		if(store.getState().user.userType !== 'common') {
-			commonApi('GET', `user/case/userIdx/${sort}/${this.state.pageNum}`, {}).then((data) => {
+		// if(store.getState().user.userType === 'common') {
+		// 일반유저도 사건 불러와야됨
+		if(true) {
+			await commonApi('GET', `${this.state.url}/${this.state.pageNum}`, {}).then((data) => {
 				this.setState({
 					cases: this.state.cases.concat(data),
 					pageNum: this.state.pageNum + 1,
 				})
-			}).catch((err) => console.log(`user/case/userIdx/${sort}/${this.state.pageNum}`, err))
+			}).catch((err) => console.log(`${this.state.url}/${this.state.pageNum}`, err))
+			// }).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 		}
 	}
 
@@ -217,16 +290,19 @@ class Case extends Component {
 				pageNum: 0,
 			})
 
-			if(store.getState().user.userType !== 'common') {
+			// if(store.getState().user.userType === 'common') {
+			// 일반유저도 사건 불러와야됨
+			if(true) {
 
-				commonApi('GET', `user/case/userIdx/${this.state.sort}/0`, {}).then((data) => {
+				await commonApi('GET', `user/case/userIdx/${this.state.sort}/0`, {}).then((data) => {
 
-					// console.log("changed data ::", data)
 					this.setState({
 						cases: data,
 						pageNum: 1
 					})
-				}).catch((err) => console.log('changeSort', err))
+
+					this.toggleModal()
+				}).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 
 			}
 
@@ -235,13 +311,65 @@ class Case extends Component {
 		this.toggleModal()
 			
 	}
+	
+	async changeNewSort(sort) {
+
+		this.toggleModal()
+
+		if(this.state.tempSort !== sort) {
+			let url = ``
+			
+			switch(sort) {
+				case 'todo': 
+					url = `user/case/userIdx/todo/DESC`
+					break
+				case 'termin': 
+					url = `user/case/userIdx/userCaseIdx/ASC`
+					break
+				default: 
+					url = `user/case/userIdx/title/ASC`
+					break
+			}
+
+			this.props.setUser({
+				sort,
+				tempSort: sort,
+				pageNum: 0,
+				url
+			})
+
+			this.setState({
+				sort,
+				tempSort: sort,
+				pageNum: 0,
+				url
+			})
+
+
+			// if(store.getState().user.userType === 'common') {
+			// 일반유저도 사건 불러와야됨
+			if(true) {
+
+				await commonApi('GET', `${url}/0`, {}).then((data) => {
+
+					if(data.length !== 0 && data[0].userCase !== undefined) {
+						this.setState({
+							cases: data,
+							pageNum: 1,
+						})
+					}
+
+				// }).catch((err) => console.log('changeSort', err))
+				}).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
+
+			}
+		}
+	}
 
 	searchHandle(value) {
-		if(store.getState().user.userType !== 'common') {
-			this.setState({
-				searchValue: value,
-			})
-		}
+		this.setState({
+			searchValue: value,
+		})
 	}
 
 	searchItem() {
@@ -257,12 +385,14 @@ class Case extends Component {
 		}
 
 		let filterCases = this.state.cases.filter((value) => {
-			if(value.userCase.title.includes(searchValue) || value.userCase.court.includes(searchValue) || 
-				value.userCase.caseNumber.includes(searchValue) || value.userCase.caseName.includes(searchValue) || 
-				value.userCase.judiciary.includes(searchValue) || value.userCase.receiptAt.includes(searchValue) || 
-				value.userCase.mergeClassification.includes(searchValue) || value.userCase.fee.includes(searchValue) || 
-				value.userCase.finalResult.includes(searchValue)) {
+			if(value.userCase.court.includes(searchValue) || value.userCase.caseNumber.includes(searchValue)) {
 					return true
+			}
+
+			if(value.userCase.title !== null) {
+				if(value.userCase.title.includes(searchValue)) {
+					return true
+				}
 			}
 
 			if(value.party.length !== 0) {
@@ -306,45 +436,41 @@ class Case extends Component {
 		})
 	}
 
-	_renderItem = ({item}) => (
-		<TouchableOpacity onPress={() => this.caseHandle(item)}>
-			<CaseComponent navigation={this.props.navigation} key={item.userCase.caseIdx} data={item}/>
-		</TouchableOpacity>
-	)
+	_renderItem = ({item}) => {
+		if(item !== undefined) {
+			return (
+				<TouchableOpacity 
+					onPress={() => this.caseHandle(item)}
+					onLongPress={() => this.toggleDeleteModal(item.userCase.title, item.userCase.caseIdx)}
+				>
+					<CaseComponent 
+						navigation={this.props.navigation} 
+						key={item.userCase.caseIdx} 
+						data={item} 
+						// onLongPress={this.toggleDeleteModal}
+					/>
+				</TouchableOpacity>
+			)
+		} else {
+			return (
+				<></>
+			)
+		}
+	}
 
 	caseHandle(data) {
 
         this.props.clearCase()
+
+		this.setState({
+			searchValue: '',
+			searching: false
+		})
         
 		let plaintiff = ''
 		let defendant = ''
 		let plaintiffDeputy = ''
 		let defendantDeputy = ''
-
-		if(data.party.length !== 0) {
-
-
-			data.party.map((item) => {
-				if(item.Classification.includes('원고')) {
-					plaintiff = item.name
-				} else {
-					defendant = item.name
-				}
-			})
-
-		}
-
-		if(data.representative.length !== 0) {
-
-			data.representative.map((item) => {
-				if(item.Classification.includes('원고')) {
-					plaintiffDeputy = item.name
-				} else {
-					defendantDeputy = item.name
-				}
-			})
-
-		}
 
 		this.props.setCase({
             caseIdx: data.userCase.caseIdx,
@@ -361,32 +487,104 @@ class Case extends Component {
 			defendant: defendant,
 			plaintiffDeputy: plaintiffDeputy,
 			defendantDeputy: defendantDeputy,
+			party: data.party,
+			representative: data.representative,
+			content: data.content,
         })
 
         this.props.navigation.navigate('CaseDetail')
 
     }
 
-	_handleLoadMore = () => {
-		this.loadCases(this.state.sort);
+	toggleDeleteModal(title, idx) {
+		this.setState({
+			deleteModalVisible: !this.state.deleteModalVisible,
+			deleteCaseTitle: title,
+			deleteCaseIdx: idx
+		})
 	}
 
-	// componentDidUpdate(prevProps, prevState) {
-	// 	console.log('prev ',prevState)
-	// 	console.log('this', this.state)
-	// 	if(prevState.cases.length !== 0 && this.state.cases.length !== 0) {
+	caseDelete(idx) {
 
-	// 		if(prevState.cases[0].userCase.caseIdx !== this.state.cases[0].userCase.caseIdx) {
-	// 			this.setState({
-	// 				cases: this.state.cases
-	// 			})
-	// 		} else if(prevState.cases.length !== this.state.cases.length) {
-	// 			this.setState({
-	// 				cases: this.state.cases
-	// 			})
-	// 		}
-	// 	}
-	// }
+		commonApi('DELETE', `user/case/caseIdx/${idx}`, {}).then((result) => {
+			if(result.success) {
+
+				const cases = this.state.cases.filter((value) => value.userCase.caseIdx !== idx)
+				this.setState({
+					cases: cases,
+				})
+				this.toggleDeleteModal('', 0)
+			} else {
+				SimpleToast.show(result.msg, SimpleToast.BOTTOM)
+			}
+		// }).catch((err) => console.log(`user/case/caseIdx/${idx}`, err))
+		}).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
+
+	}
+
+	async caseAddHandle() {
+
+		const type = store.getState().user.userType
+		let caseCount
+		
+		// 사건개수에 따른 분기처리용 
+		let flag
+		
+		// 사건 총 갯수 구해옴
+		// await commonApi('GET', `user/case/userIdx/count`, {}).then((result) => {
+		// 	if(result.success) {
+		// 		caseCount = result.count
+		// 	} else {
+		// 		SimpleToast.show(result.msg, SimpleToast.BOTTOM)
+		// 		return
+		// 	}
+		// }).catch((err) => {
+		// 	SimpleToast.show("서버와 연결이 끊어졌습니다. \n나중에 다시 시도해주세요.", SimpleToast.BOTTOM)
+		// 	return
+		// })
+
+		// 지금은 caseCount 가져오는 API가 없어서 화면에 표시된 개수로 판단
+		// common 멤버는 5개가 최대라 지금은 괜찮음
+
+		
+		caseCount = this.state.cases.length
+		
+		switch(type) {
+			// 상용할때 체크해야함 ... JY
+			case 'common':
+				if(caseCount >= 100) {
+					flag = false
+				} else {
+					flag = true
+				}
+			break
+			default:
+				if(caseCount >= 5) {
+					flag = false
+				} else {
+					flag = true
+				}
+			break
+		}
+
+		if(flag) {
+			this.props.navigation.navigate('CaseAdd')
+		} else {
+			Alert.alert(
+				'알림',
+				'등록가능한 사건 수를 초과하였습니다.',
+				[
+					{'text': '확인',}
+				]
+			)
+		}
+	}
+
+	_handleLoadMore = () => {
+		if(this.state.searching === false) {
+			this.loadCases(this.state.sort)
+		}
+	}
 
 	// 백버튼 제어
     handleBackButton = () => {
@@ -417,37 +615,34 @@ class Case extends Component {
 	render() {
 		return (
 			<View style={styles.caseContainer}>
-				{/* <View style={styles.caseHeader}>
-					<View style={{flex: 10}}>
-						<Text style={styles.headerText}>소송프로</Text>
+				<View style={styles.header}>
+					<HeaderText title='사건' count={`(${this.state.cases.length})`} />
+					<View style={{flexDirection: 'row'}}>
+						<TouchableOpacity onPress={() => this.props.navigation.navigate('Alarm')} style={{marginRight: 5}}>
+							{/* <Image source={require('../../assets/images/Bell.png')} /> */}
+							<IconFontisto name="bell" size={28} />
+						</TouchableOpacity>
+						<TouchableOpacity onPress={() => this.toggleModal()} style={{marginHorizontal: 5}}>
+							{/* 필터 아이콘 */}
+							<FontAwesome name={'sliders'} size={26} color={ this.state.isVisible ? '#0078D4' : '#000'} />
+						</TouchableOpacity>
 					</View>
-				</View> */}
-				{/* 진행중 칸 */}
-				<View style={styles.filterContainer}>
-					<View style={{flex: 1,}}></View>
-					<View style={{flex: 1,}}></View>
-					<View style={{flex: 6, alignItems: "center"}}>
-						<Text style={styles.filterTitle}>사건({this.state.cases.length}/{store.getState().user.maxCase})</Text>
-					</View>
-					<View style={{flex: 1}}/>
-					<View style={{flex: 1}}/>
-					{/* 종 아이콘 추가 */}
-					{/* <TouchableOpacity style={{flex: 1}} onPress={() => this.props.navigation.navigate('Alarm')}>
-						<Image source={require('../../assets/images/Bell.png')} />
-					</TouchableOpacity> */}
-					{/* <TouchableOpacity style={{flex: 1}}>
-						<Image source={require('../../assets/images/Gear.png')} />
-					</TouchableOpacity> */}
 				</View>
 				<View style={styles.searchContainer}>
-					<View style={{flex: 8}}>
-						<TextInput 
-							style={styles.searchInput} 
-							placeholder="검색어를 입력하세요." 
-							value={this.state.searchValue} 
-							onChangeText={(value) => this.searchHandle(value)} 
-						/>
-					</View>
+					<TextInput 
+						style={styles.searchInput} 
+						placeholder="검색어를 입력하세요." 
+						placeholderTextColor="#808080"
+						value={this.state.searchValue} 
+						onChangeText={(value) => this.searchHandle(value)} 
+						onSubmitEditing={
+							this.state.searching ? (
+								() => this.cancelSearch()
+							) : (
+								() => this.searchItem()
+							)
+						}
+					/>
 						{/* 돋보기 아이콘 */}
 						{
 							this.state.searching ? (
@@ -460,18 +655,9 @@ class Case extends Component {
 								</TouchableOpacity>
 							)
 						}
-					<TouchableOpacity style={{flex: 1}} onPress={() => this.toggleModal()}>
-						{/* 필터 아이콘 */}
-						<Image source={require('../../assets/images/FadersHorizontal.png')} />
-					</TouchableOpacity>
+
 				</View>
 				{/* 사건 리스트 나오는 목록 */}
-				{/* <ScrollView 
-					style={styles.caseListContainer}
-					keyboardDismissMode="on-drag"
-				>
-					<CaseList navigation={this.props.navigation} sort={this.state.sort} cases={this.state.cases} />
-				</ScrollView> */}
 				<FlatList 
 					style={styles.caseListContainer} 
 					navigation={this.props.navigation} 
@@ -480,52 +666,74 @@ class Case extends Component {
 					keyExtractor={(item, index) => index}
 					onEndReached={this._handleLoadMore}
 					onEndReachedThreshold={1}
-				/>
-				{
-					store.getState().user.userType !== 'common' ? (
-						<TouchableOpacity style={styles.write} onPress={() => this.props.navigation.navigate('CaseAdd')}>
-							<View style={styles.circle}>
-								<Image source={require('../../assets/images/FolderPlus-1.png')} />
-							</View>
-						</TouchableOpacity>
-					// ) : (<></>)
-					) : (<TouchableOpacity style={styles.write} onPress={() => SimpleToast.show("플랜가입 유저만 가능합니다.", SimpleToast.BOTTOM)}>
-						<View style={styles.circle}>
-							<Image source={require('../../assets/images/FolderPlus-1.png')} />
+					ListEmptyComponent={
+						<View style={styles.emptyContainer}>
+							<Text style={styles.emptyText}>등록된 사건이 없습니다.</Text>
 						</View>
-					</TouchableOpacity>)
-				}
-				<Modal isVisible={this.state.isVisible}>
-                    <View style={{flex: 1, backgroundColor: '#FFFFFF', padding: 10, justifyContent: 'space-between'}}>
-						<View>
-							<View style={styles.modalHeader}>
-								<BlueDot />
-								<Text style={styles.modalTitle}>사건 정렬</Text>
+					}
+				/>
+				<TouchableOpacity style={styles.write} onPress={() => this.caseAddHandle()}>
+					<View style={styles.circle}>
+						<Icon name={'addfolder'} size={25} color={'#FFF'} />
+					</View>
+				</TouchableOpacity>
+				{
+					this.state.isVisible ? (
+						<View style={styles.sortContainer}>
+							<View style={styles.sortItemContainer}>
+								<TouchableOpacity 
+									style={
+										this.state.sort === 'title' ? [styles.sortItemSelected, {borderBottomWidth: 1, borderBottomColor: '#808080'}] :[styles.sortItem, {borderBottomWidth: 1, borderBottomColor: '#808080'}]
+									} 
+									onPress={() => this.changeNewSort('title')}>
+									<Text style={
+										this.state.sort === 'title' ? [styles.sortText, styles.sortTextBold] : styles.sortText
+									}>
+										사건별칭순
+									</Text>
+								</TouchableOpacity>
+								<TouchableOpacity 
+									style={
+										this.state.sort === 'todo' ? [styles.sortItemSelected, {borderBottomWidth: 1, borderBottomColor: '#808080'}] :[styles.sortItem, {borderBottomWidth: 1, borderBottomColor: '#808080'}]
+									} 
+									onPress={() => this.changeNewSort('todo')}>
+									<Text style={
+										this.state.sort === 'todo' ? [styles.sortText, styles.sortTextBold] : styles.sortText
+									}>
+										ToDo순
+									</Text>
+								</TouchableOpacity>
+								<TouchableOpacity 
+									style={
+										this.state.sort === 'termin' ? [styles.sortItemSelected] :[styles.sortItem, {}]
+									} 
+									onPress={() => this.changeNewSort('termin')}>
+									<Text style={
+										this.state.sort === 'termin' ? [styles.sortText, styles.sortTextBold] : styles.sortText
+									}>
+										일정순
+									</Text>
+								</TouchableOpacity>
 							</View>
-							<View style={styles.radioContainer}>
-								<View style={styles.radioItemContainer}>
-									<RadioButton 
-										value="ASC"
-										status={ this.state.sort === 'ASC' ? 'checked' : 'unchecked' }
-										onPress={() => this.setState({ sort: 'ASC' })}
-										color="#2665A1"
-									/>
-									<Text>오름차순</Text>
-								</View>
-								<View style={styles.radioItemContainer}>
-									<RadioButton 
-										value="DESC"
-										status={ this.state.sort === 'DESC' ? 'checked' : 'unchecked' }
-										onPress={() => this.setState({ sort: 'DESC' })}
-										color="#2665A1"
-									/>
-									<Text>내림차순</Text>
+						</View>
+					) : (<></>)
+				}
+				<Modal isVisible={this.state.deleteModalVisible}>
+                    <View style={{backgroundColor: '#FFFFFF', padding: 10, justifyContent: 'space-between'}}>
+						<View>
+							<View style={styles.modalContainer}>
+								<View style={styles.deleteModalContent}>
+									<Text>{this.state.deleteCaseTitle}</Text>
+									<Text>사건을 삭제하시겠습니까?</Text>
 								</View>
 							</View>
 						</View>
 						<View style={styles.buttonContainer}>
-							<TouchableOpacity style={styles.submit} onPress={() => this.changeSort()}>
-								<Text style={styles.buttonText}>확인</Text>
+							<TouchableOpacity style={styles.cancel} onPress={() => this.toggleDeleteModal('', 0)}>
+								<Text style={styles.buttonText}>취소</Text>
+							</TouchableOpacity>
+							<TouchableOpacity style={styles.submit} onPress={() => this.caseDelete(this.state.deleteCaseIdx)}>
+								<Text style={styles.buttonText}>삭제</Text>
 							</TouchableOpacity>
 						</View>
                     </View>
@@ -553,51 +761,74 @@ const styles = StyleSheet.create({
 	caseContainer: {
 		flex: 1,
 	},
-	// caseHeader: {
-	// 	marginTop: 40,
-	// 	justifyContent: "center",
-	// 	alignItems: "center",
-	// 	borderBottomWidth: 0.8,
-	// 	borderBottomColor: "#2665A1",
-	// 	height: 38,
-	// },
-	// headerText: {
-	// 	fontSize: 22,
-	// 	fontWeight: "bold",
-	// },
-	filterContainer: {
-		// marginTop: 5,
-		marginTop: 40,
-		height: 35,
-		alignItems: "center",
-		justifyContent: "center",
-		flexDirection: "row",
-		paddingBottom: 4,
-		borderBottomColor: '#2665A1',
-		borderBottomWidth: 1,
-		alignSelf: 'stretch',
+	header: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		marginRight: 5,
+		// marginRight: Dimensions.get('window').width / 20,
+		marginTop: 10,
 	},
-	filterTitle: {
-		fontSize: 13,
-		fontWeight: "700",
-		color: "#2665A1",
+	sortContainer: {
+		position: 'absolute',
+		top: 40,
+		right: Dimensions.get('window').width / 20,
+		width: 150,
+		zIndex: 9999,
+		backgroundColor: '#FFF',
+		borderColor: '#000',
+		borderWidth: 1,
+		flex: 1,
+	},
+	sortItemContainer: {
+		flex: 1,
+	},
+	sortItem: {
 
 	},
-	searchContainer: {
+	sortText: {
+		fontSize: 14,
+		marginLeft: 10,
 		marginTop: 10,
-		height: 40,
-		justifyContent: "space-around",
+		marginBottom: 10,
+	},
+	sortItemSelected: {
+		backgroundColor: '#D4D4D4'
+	},
+	sortTextBold: {
+		fontWeight: 'bold',
+	},
+	searchContainer: {
+		// height: 40,
+		// justifyContent: "space-around",
+		// alignItems: "flex-start",
+		// paddingTop: 4,
+		// paddingBottom: 4,
+		// paddingLeft: 16,
+		// paddingRight: 16,
+		// marginBottom: 8,
+		// flexDirection: "row",
+		marginTop: 5,
+		justifyContent: "center",
 		alignItems: "flex-start",
-		paddingTop: 4,
-		paddingBottom: 4,
+		borderBottomWidth: 0.8,
+		borderBottomColor: "#C4C4C4",
+		height: 38,
 		paddingLeft: 16,
-		paddingRight: 16,
-		marginBottom: 8,
+		paddingBottom: 45,
 		flexDirection: "row",
 	},
 	searchInput: {
+		// width: '100%',
+		// height: 36,
+		// fontSize: 14,
+		// fontWeight: "400",
+		// justifyContent: 'center',
+		// borderRadius: 5,
+		// backgroundColor: '#e5e5e5',
+		// color: '#000'
+		flex: 8,
 		paddingLeft: 16,
-		width: '90%',
+		width: '80%',
 		height: 36,
 		marginBottom: 7,
 		fontSize: 13,
@@ -619,7 +850,7 @@ const styles = StyleSheet.create({
 		right: 0,
 	},
 	circle: {
-		backgroundColor: '#2665A1',
+		backgroundColor: '#0078d4',
 		justifyContent: 'center',
 		alignItems: 'center',
 		borderRadius: 25,
@@ -643,6 +874,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         marginTop: 20,
     },
+	modalContainer: {
+        flexDirection: 'column',
+        justifyContent: 'space-around',
+        marginTop: 20,
+    },
     radioItemContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
@@ -654,17 +890,42 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 30,
     },
-	submit: {
-        backgroundColor: '#2665A1',
+	cancel: {
+        backgroundColor: '#808080',
         justifyContent: 'center',
         alignItems: 'center',
         flex: 1,
         height: 35,
         borderRadius: 3,
+		marginHorizontal: 2,
+    },
+	submit: {
+        backgroundColor: '#0078d4',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flex: 1,
+        height: 35,
+        borderRadius: 3,
+		marginHorizontal: 2,
     },
     buttonText: {
         fontSize: 15,
         fontWeight: 'bold',
         color: '#FFFFFF'
+    },
+	deleteModalContent: {
+		flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+	},
+	emptyContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        flex: 1,
+        marginTop: 30,
+    },
+    emptyText: {
+        fontSize: 15,
+        fontWeight: '400'
     },
 })

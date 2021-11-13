@@ -1,9 +1,15 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 
-export default BlueDot = () => {
+export default BlueDot = (props) => {
+
+	let dotColor = '#0089d4'
+	if(props.color !== undefined) {
+		dotColor = props.color
+	}
+
 	return (
-		<View style={styles.blueDot}>
+		<View style={[styles.blueDot, {backgroundColor: dotColor}]}>
 
 		</View>
 	)
@@ -14,6 +20,6 @@ const styles = StyleSheet.create({
 		width: 5,
         height: 5,
         borderRadius: 2.5,
-        backgroundColor: "#2665A1",
+        // backgroundColor: dotColor,
 	}
 });

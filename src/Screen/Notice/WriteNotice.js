@@ -21,6 +21,8 @@ import Modal from 'react-native-modal';
 import SimpleToast from 'react-native-simple-toast';
 import { commonApi } from '../../Common/ApiConnector';
 
+import NavigationService from '../../Navigation/NavigationService';
+
 class WriteNotice extends Component {
 
     constructor(props) {
@@ -55,11 +57,13 @@ class WriteNotice extends Component {
 
         if(this.state.title.trim() === '') {
             console.log(`this.state.title.trim() === ''`)
+            SimpleToast.show('제목을 입력해주세요', SimpleToast.BOTTOM)
             return
         }
 
         if(this.state.content.trim() === '') {
             console.log(`this.state.content.trim() === ''`)
+            SimpleToast.show('내용을 입력해주세요', SimpleToast.BOTTOM)
             return
         }
 
@@ -77,9 +81,12 @@ class WriteNotice extends Component {
                 SimpleToast.show("공지사항이 작성되었습니다.", SimpleToast.BOTTOM);
                 
 				// 어드민페이지 메인으로 가야됨..
-                this.props.navigation.replace('AdminMenu')
+                NavigationService.navigate('AdminMenu')
+            } else {
+                SimpleToast.show(result.msg, SimpleToast.BOTTOM)
             }
-        }).catch((err) => console.log('admin/notice ::: ', err))
+        // }).catch((err) => console.log('admin/notice ::: ', err))
+        }).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 
     }
 
@@ -91,11 +98,16 @@ class WriteNotice extends Component {
         return (
             <KeyboardAvoidingView style={styles.writeToDoContainer}>
                 <View style={{flex: 9}}>
-                    <View style={styles.header}>
-                        <View style={styles.writeToDoTitleContainer}>
+                    <View style={styles.headerContainer}>
+                        <View style={styles.headerLeft}>
                             <Text style={styles.writeToDoTitle}>
                                 공지사항 등록
                             </Text>
+                        </View>
+                        <View style={styles.headerRight}>
+                            <TouchableOpacity style={styles.exit} onPress={() => NavigationService.back()} >
+                                <Image source={require('../../assets/images/X.png')} />
+                            </TouchableOpacity>
                         </View>
                     </View>
                     <View style={styles.inputContainer}>
@@ -108,6 +120,7 @@ class WriteNotice extends Component {
                                 <TextInput 
                                     style={styles.titleInput} 
                                     placeholder="제목을 입력하세요." 
+                                    placeholderTextColor="#808080"
                                     value={this.state.todoTitle}
                                     onChangeText={(value) => this.todoTitleHandle(value)}
                                 />
@@ -123,6 +136,7 @@ class WriteNotice extends Component {
                                     style={styles.contentInput} 
                                     multiline={true} 
                                     placeholder="내용을 입력하세요."
+                                    placeholderTextColor="#808080"
                                     value={this.state.content}
                                     onChangeText={(value) => this.contentHandle(value)}
                                 />
@@ -135,11 +149,6 @@ class WriteNotice extends Component {
                             <Text style={styles.loginButton}>등록</Text>
                     </TouchableOpacity>
                 </View>
-                {/* <View style={styles.buttonContainer}>
-                    <TouchableOpacity style={styles.button} onPress={() => this.props.navigation.replace('AdminMenu')}>
-                            <Text style={styles.loginButton}>네비게이터 테스트</Text>
-                    </TouchableOpacity>
-                </View> */}
             </KeyboardAvoidingView>
         );
     }
@@ -151,14 +160,21 @@ const styles = StyleSheet.create({
     writeToDoContainer: {
         flex: 1,
     },
-    header: {
-        flexDirection: 'row',
-        marginTop: 15,
-        marginLeft: 15,
+    headerContainer: {
+		marginTop: 10,
         marginBottom: 15,
-        // justifyContent: 'center',
-        alignItems: 'center',
-    },
+		flexDirection: 'row',
+		justifyContent: "space-between",
+		alignItems: 'flex-start',
+		borderBottomColor: "#C4C4C4",
+		borderBottomWidth: 1,
+	},
+	headerLeft: {
+        marginLeft: Dimensions.get('window').width / 20
+	},
+	headerRight: {
+        marginRight: Dimensions.get('window').width / 20
+	},
     backButton: {
 
     },
@@ -230,7 +246,7 @@ const styles = StyleSheet.create({
     caseLeft: {
         fontSize: 15,
         fontWeight: 'bold',
-        color: '#2665A1'
+        color: '#0078d4'
     },
     caseRight: {
         fontSize: 13,
@@ -256,8 +272,6 @@ const styles = StyleSheet.create({
 		marginBottom: 7,
 		fontSize: 13,
 		fontWeight: "400",
-		// justifyContent: 'flex-start',
-        // alignItems: "stretch",
 		borderRadius: 5,
 		backgroundColor: '#e5e5e5',
         textAlignVertical: 'top',
@@ -268,7 +282,7 @@ const styles = StyleSheet.create({
     },
     datePickerButton: {
         width: "80%",
-        backgroundColor: '#2665A1',
+        backgroundColor: '#0078d4',
         paddingLeft: 5,
         paddingRight: 5,
         borderRadius: 3,
@@ -286,7 +300,6 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         flex: 1,
-        // width: (Dimensions.get('window').width - (Dimensions.get('window').width / 5)),
 		justifyContent: 'center',
         alignItems: 'center',
 	},
@@ -308,7 +321,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
 		fontWeight: "600",
 		fontSize: 15,
-        backgroundColor: '#2665A1',
+        backgroundColor: '#0078d4',
         color: '#FFFFFF',
         paddingTop: 8,
         paddingBottom: 8,

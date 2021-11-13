@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import {
 	View,
-	Text,
 	Button,
 	TouchableOpacity,
 	StyleSheet,
@@ -10,8 +9,6 @@ import {
 
 import SettingItem from '../Setting/SettingItem';
 
-import { store } from '../../redux/store';
-import { commonApi } from '../../Common/ApiConnector';
 import { setUser, clearUser } from '../../redux/actions/user';
 import { connect } from 'react-redux';
 import SimpleToast from 'react-native-simple-toast';
@@ -82,15 +79,8 @@ class AdminMenu extends Component {
 			<View style={styles.settingContainer}>
 				<View style={styles.itemListContainer}>
 					<View style={styles.itemContainer, styles.bottomLine}>
-						{/* <SettingItem title={this.state.info.email + "님"} content="일반회원" topItem /> */}
 						<SettingItem title={`관리자`} topItem />
 					</View>
-					{/* <TouchableOpacity style={styles.itemContainer}>
-						<SettingItem title="업무관련직 인증" content="인증하기" isMore />
-					</TouchableOpacity> */}
-					{/* <TouchableOpacity style={styles.itemContainer}>
-						<SettingItem title="변호사 인증" content="인증하기" isMore />
-					</TouchableOpacity> */}
 				</View>
 				<View style={styles.itemListContainer}>
 					<TouchableOpacity style={styles.itemContainer, styles.bottomLine} onPress={() => this.props.navigation.navigate('UserPermission')}>
@@ -101,7 +91,7 @@ class AdminMenu extends Component {
 					</TouchableOpacity>
 				</View>
 				<TouchableOpacity style={styles.buttonContainer} onPress={() => this.logout()}>
-					<Button style={styles.logout} color="#2665A1" title="로그아웃" onPress={() => this.logout()}/>
+					<Button style={styles.logout} color="#0078d4" title="로그아웃" onPress={() => this.logout()}/>
 				</TouchableOpacity>
 			</View>
 		);
@@ -144,11 +134,9 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		fontWeight: "600",
 		fontSize: 15,
-		// marginTop: 30,
 	},
 	itemContainer: {
-		// marginLeft: Dimensions.get('window').width / 10,
-		// marginRight: Dimensions.get('window').width / 10,
+
 	},
 	bottomLine: {
 		borderBottomColor: "#C4C4C4",

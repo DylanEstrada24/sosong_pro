@@ -1,14 +1,12 @@
 import React, {Component} from 'react';
 import {
     View,
-    TouchableOpacity,
     Text,
     StyleSheet
 } from 'react-native';
 
 import moment from 'moment';
 import 'moment/locale/ko';
-import CheckBox from '@react-native-community/checkbox';
 
 class ToDo extends Component {
 
@@ -32,7 +30,7 @@ class ToDo extends Component {
     checkDiff() {
         let today = moment().format('YYYY-MM-DD')
         today = moment(today)
-        const settingDate = moment(this.props.settingAt)
+        const settingDate = moment(this.props.data.updateAt)
         let diff = settingDate.diff(today, 'days')
 
         diff *= -1
@@ -48,31 +46,26 @@ class ToDo extends Component {
     }
 
     componentDidMount() {
-        this.checkDiff()
+        // this.checkDiff()
     }
 
 
     render() {
         moment.locale('ko');
-        const day = moment(this.props.settingAt).format('dddd').charAt(0)
+        // const day = moment(this.props.data.updateAt).format('dddd').charAt(0)
+        const day = moment.tz(this.props.data.updateAt, 'Asia/Seoul').utc(9).format("dddd").charAt(0)
+        console.log('57', this.props.data)
         return (
             <View style={styles.toDoContainer}>
-                <View style={styles.checkBox} />
-                {/* <View style={styles.topContainer}>
-                    <View style={styles.leftCategory}>
-                        <Text style={styles.title}>
-                            더스쿠프 상대 사건
-                        </Text>
-                    </View>
-                </View> */}
                 <View style={styles.toDoTextContainer}>
-                    <Text style={styles.toDoTitle}>마감일 : {this.props.settingAt}({day})</Text>
+                    {/* <Text style={styles.toDoTitle}>마감일 : {this.props.data.settingAt}({day})</Text> */}
+                    <Text style={styles.toDoTitle}>{this.props.data.title}</Text>
                     {/* <Text style={styles.toDoContent}>{this.props.content}</Text> */}
-                    <Text style={styles.toDoContent}>더스쿠프 상대 사건</Text>
+                    <Text style={styles.toDoContent}>{this.props.data.content}</Text>
                 </View>
-                <View style={styles.dDayTextContainer}>
+                {/* <View style={styles.dDayTextContainer}>
                     <Text style={styles.dDayText}>D{this.state.diff}</Text>
-                </View>
+                </View> */}
             </View>
         )
     }
@@ -86,7 +79,7 @@ const styles = StyleSheet.create({
     //     // margin: 15,
     //     flexDirection: 'column',
     //     justifyContent: "center",
-    //     borderColor: '#2665A1',
+    //     borderColor: '#0078d4',
     //     borderRadius: 10,
     //     borderWidth: 1,
     //     marginTop: 5,
@@ -121,50 +114,111 @@ const styles = StyleSheet.create({
     //     // backgroundColor: 'red'
     // },
 
+    // toDoContainer: {
+    //     flex: 1,
+    //     flexDirection: "row",
+    //     width: "90%",
+    //     // height: 80,
+    //     marginLeft: "5%",
+    //     marginRight: "5%",
+    //     justifyContent: "space-around",
+    //     alignItems: "flex-start",
+    //     borderColor: "#0078d4",
+    //     borderWidth: 1,
+    //     borderStyle: "solid",
+    //     borderRadius: 10,
+    //     marginTop: 5,
+    //     marginBottom: 5,
+    //     paddingTop: 18,
+    //     paddingBottom: 18,
+    // },
+    // checkBox: {
+    //     flex: 0.5,
+    //     justifyContent: 'center',
+    //     alignItems: 'center',
+    // },
+    // toDoTextContainer: {
+    //     flex: 3,
+    // },
+    // toDoTitle: {
+    //     fontSize: 15,
+    //     fontWeight: "bold",
+    //     color: "#0078d4",
+    //     marginBottom: 5,
+    // },
+    // toDoContent: {
+    //     fontSize: 15,
+    //     fontWeight: "400",
+    // },
+    // dDayTextContainer: {
+    //     flex: 1,
+    //     justifyContent: 'flex-start',
+    //     alignItems: 'flex-start',
+    // },
+    // dDayText: {
+    //     color: "#000000",
+    //     fontWeight: "bold",
+    //     fontSize: 32,
+    // },
+
     toDoContainer: {
         flex: 1,
         flexDirection: "row",
-        width: "90%",
+        width: "100%",
         // height: 80,
         marginLeft: "5%",
         marginRight: "5%",
         justifyContent: "space-around",
         alignItems: "flex-start",
-        borderColor: "#2665A1",
+        borderColor: "#0078d4",
         borderWidth: 1,
         borderStyle: "solid",
-        borderRadius: 10,
+        borderRadius: 5,
         marginTop: 5,
         marginBottom: 5,
-        paddingTop: 18,
-        paddingBottom: 18,
+        paddingTop: 5,
+        paddingBottom: 10,
     },
     checkBox: {
-        flex: 0.5,
+        // flex: 0.5,
         justifyContent: 'center',
         alignItems: 'center',
     },
+    toDoCheckBox: {
+        // backgroundColor: 'red',
+
+    },
     toDoTextContainer: {
         flex: 3,
-    },
-    toDoTitle: {
-        fontSize: 15,
-        fontWeight: "bold",
-        color: "#2665A1",
-        marginBottom: 5,
-    },
-    toDoContent: {
-        fontSize: 15,
-        fontWeight: "400",
-    },
-    dDayTextContainer: {
-        flex: 1,
+        marginLeft: 10,
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
     },
-    dDayText: {
-        color: "#000000",
+    toDoTitle: {
+        // backgroundColor: 'red',
+        fontSize: 15,
         fontWeight: "bold",
-        fontSize: 32,
+        // color: "#0078d4",
+        marginTop: 4,
+        // marginBottom: 5,
+    },
+    toDoContent: {
+        fontSize: 13,
+        fontWeight: "700",
+        color: '#0078D4',
+    },
+    dDayTextContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        // flexDirection: 'row',
+        // backgroundColor: 'red',
+        height: '100%',
+    },
+    dDayText: {
+        // color: "#000000",
+        fontWeight: "bold",
+        fontSize: 30,
+        textAlign: 'center',
     },
 });

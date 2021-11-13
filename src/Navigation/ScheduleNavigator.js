@@ -9,18 +9,18 @@ import { createAppContainer } from 'react-navigation';
 
 const TabNavigator = createMaterialTopTabNavigator(
     {
-        캘린더: {
-			screen: All
-		},
+        // 캘린더: {
+		// 	screen: All
+		// },
         기일: {
 			screen: Termin
 		},
-		ToDo: {
-			screen: ToDo
+		사용자: {
+            screen: Memo
 		},
-		메모: {
-			screen: Memo
-		},
+        ToDo: {
+            screen: ToDo
+        },
     },
     {
         animationEnabled: false,
@@ -31,7 +31,7 @@ const TabNavigator = createMaterialTopTabNavigator(
                 backgroundColor: "#FFFFFF",
             },
             indicatorStyle: {
-                backgroundColor: "#2665A1",
+                backgroundColor: "#0078d4",
             },
             activeTintColor: '#000',
             inactiveTintColor: '#C7C7C7'

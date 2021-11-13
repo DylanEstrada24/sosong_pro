@@ -34,18 +34,15 @@ export default Notice
 
 const styles = StyleSheet.create({
 	container: {
-		// flex: 1,
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
 		height: 40,
 		width: '100%',
-		// marginLeft: Dimensions.get('window').width / 20,
-		// marginRight: Dimensions.get('window').width / 20,
 		paddingBottom: 6,
 		borderBottomColor: 'rgba(0, 0, 0, 0.08)',
 		borderBottomWidth: 1,
-		borderLeftColor: '#2665A1',
+		borderLeftColor: '#0078d4',
 		borderLeftWidth: 5,
 		marginTop: 5,
 		marginBottom: 5,
@@ -71,6 +68,6 @@ const styles = StyleSheet.create({
 	dateText: {
 		fontSize: 15,
 		fontWeight: '400',
-		color: '#2665A1',
+		color: '#0078d4',
 	},
 })

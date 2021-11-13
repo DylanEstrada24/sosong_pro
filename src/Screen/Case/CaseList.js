@@ -19,38 +19,9 @@ class CaseList extends Component {
 			sort: this.props.sort,
 			pageNum: 0,
 		})
-		// this.loadCases = this.loadCases.bind(this)
 		this.caseHandle = this.caseHandle.bind(this)
 	}
 
-	// async UNSAFE_componentWillMount() {
-
-	// 	// const user = store.getState().user
-
-	// 	this.setState({
-	// 		// cases: this.props.data,
-	// 		// sort: user.sort,
-	// 		// pageNum: this.props.pageNum,
-	// 		sort: this.props.sort
-	// 	})
-		
-	// 	// this.loadCases();
-
-	// 	let url = `user/case/userIdx/${this.state.sort}/${this.state.pageNum}`
-
-	// 	if(this.state.sort === '' || this.state.sort === undefined) {
-	// 		url = `user/case/userIdx/${store.getState().user.sort}/${this.state.pageNum}`
-	// 	}
-
-	// 	console.log(url)
-	// 	commonApi('GET', url, {}).then((data) => {
-	// 		console.log(data)
-	// 		this.setState({
-	// 			cases: data,
-	// 		})
-	// 	}).error((err) => console.log("tlqkf", err))
-
-	// }
 
 	async componentDidMount() {
 		
@@ -72,41 +43,11 @@ class CaseList extends Component {
 		}
 	}
 	
-	// async loadCases() {
-
-	// 	let url = `user/case/userIdx/${this.state.sort}/${this.state.pageNum}`
-
-	// 	if(this.state.sort === '' || this.state.sort === undefined) {
-	// 		url = `user/case/userIdx/${store.getState().user.sort}/${this.state.pageNum}`
-	// 	}
-
-	// 	console.log(url)
-	// 	new Promise(commonApi('GET', url, {}).then((data) => {
-	// 		console.log(data)
-	// 		this.setState({
-	// 			cases: data,
-	// 		})
-	// 	}))
-	// }
 
 	caseHandle(data) {
 
         this.props.clearCase()
-        
-        // this.props.setCase({
-        //     caseIdx: data.userCase.caseIdx,
-        //     caseNumber: data.userCase.caseNumber,
-        //     title: data.userCase.title,
-        //     court: data.userCase.court,
-        //     caseName: data.userCase.caseName,
-        //     judiciary: data.userCase.judiciary,
-        //     receiptAt: data.userCase.receiptAt,
-        //     mergeClassification: data.userCase.mergeClassification,
-        //     fee: data.userCase.fee,
-        //     finalResult: data.userCase.finalResult,
-        // })
-		
-		// console.log("party",data.party)
+
 		let plaintiff = ''
 		let defendant = ''
 		let plaintiffDeputy = ''
@@ -186,8 +127,7 @@ class CaseList extends Component {
 	render() {
 
 		const cases = this.state.cases;
-
-		// console.log("list.js cases ::: ", cases)																					
+																				
 		return (
 			<View style={styles.caseListContainer}>
 				<View>

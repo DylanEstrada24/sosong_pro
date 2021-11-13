@@ -1,10 +1,8 @@
 import React, {Component} from 'react';
 import {
 	View,
-	ScrollView,
 	Text,
 	StyleSheet,
-	Dimensions
 } from 'react-native';
 
 class Alarm extends Component {
@@ -15,16 +13,21 @@ class Alarm extends Component {
 	render() {
 		return (
 			<View style={styles.container}>
-				<View style={styles.contentContainer}>
-					<View style={styles.content}>
-						<Text style={styles.title}>
-							{this.props.title}
-						</Text>
+				<View style={styles.headerContainer}>
+					<View style={styles.top}>
+						<View style={styles.headerTitle}>
+							<Text style={styles.title}>
+								{this.props.title}
+							</Text>
+						</View>
+						<View style={styles.date}>
+							<Text style={styles.dateText}>
+								{this.props.date}
+							</Text>
+						</View>
 					</View>
-					<View style={styles.date}>
-						<Text style={styles.dateText}>
-							{this.props.date}
-						</Text>
+					<View style={styles.contentContainer}>
+						<Text style={styles.content}>{this.props.content}</Text>
 					</View>
 				</View>
 			</View>
@@ -36,35 +39,32 @@ export default Alarm
 
 const styles = StyleSheet.create({
 	container: {
-		// flex: 1,
 		flexDirection: 'row',
 		justifyContent: 'center',
 		alignItems: 'center',
-		height: 40,
 		width: '100%',
-		// marginLeft: Dimensions.get('window').width / 20,
-		// marginRight: Dimensions.get('window').width / 20,
 		paddingBottom: 6,
 		borderBottomColor: 'rgba(0, 0, 0, 0.08)',
 		borderBottomWidth: 1,
-		borderLeftColor: '#2665A1',
-		borderLeftWidth: 5,
 		marginTop: 5,
 		marginBottom: 5,
 	},
-	contentContainer: {
+	headerContainer: {
+		width: '100%',
+	},
+	top: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		width: '90%',
 	},
-	content: {
+	headerTitle: {
 		justifyContent: 'flex-start',
 		alignItems: 'center',
 	},
 	title: {
-		fontSize: 15,
+		fontSize: 16,
 		fontWeight: 'bold',
+		color: '#0078D4',
 	},
 	date: {
 		justifyContent: 'flex-end',
@@ -73,6 +73,12 @@ const styles = StyleSheet.create({
 	dateText: {
 		fontSize: 15,
 		fontWeight: '400',
-		color: '#2665A1',
+		color: '#0078d4',
+	},
+	contentContainer: {
+
+	},
+	content: {
+		fontSize: 14,
 	},
 })

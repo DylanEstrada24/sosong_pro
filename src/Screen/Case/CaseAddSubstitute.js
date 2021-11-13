@@ -15,8 +15,7 @@ import BlueDot from '../../Components/BlueDot';
 
 class CaseAddSubstitute extends Component {
 	render() {
-
-		// TabNavigator로 돌아가고싶음.
+		
 		const resetAction = StackActions.reset({
 			index: 1,
 			actions: [NavigationActions.navigate({
@@ -80,8 +79,8 @@ const styles = StyleSheet.create({
 	header: {
 		width: '100%',
 		flexDirection: 'column',
-		marginTop: 20,
-		borderBottomColor: '#2665A1',
+		marginTop: 10,
+		borderBottomColor: '#0078d4',
 		borderBottomWidth: 1,
 		paddingBottom: 5,
 	},
@@ -100,7 +99,6 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		width: '90%',
 		justifyContent: 'center',
-		// alignItems: 'center',
 		marginLeft: Dimensions.get('window').width / 20,
 		marginRight: Dimensions.get('window').width / 20,
 		marginTop: 11,
@@ -115,7 +113,6 @@ const styles = StyleSheet.create({
 		borderBottomColor: '#C4C4C4',
 		borderBottomWidth: 1,
 		paddingBottom: 2,
-		// width: '100%',
 	},
 	contentTitle: {
 		fontSize: 15,
@@ -145,7 +142,7 @@ const styles = StyleSheet.create({
 	button1: {
 		width: 95,
 		height: 35,
-		backgroundColor: '#2665A1',
+		backgroundColor: '#0078d4',
 		margin: 3,
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -166,7 +163,7 @@ const styles = StyleSheet.create({
 		color: '#FFFFFF',
 	},
 	nextButton: {
-		backgroundColor: '#2665A1',
+		backgroundColor: '#0078d4',
 		borderRadius: 5,
 		width: '80%',
 		marginLeft: Dimensions.get('window').width / 10,

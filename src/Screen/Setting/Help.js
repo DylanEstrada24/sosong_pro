@@ -2,6 +2,9 @@ import React, {Component} from 'react';
 import {
 	View,
 	Text,
+	Dimensions,
+	Image,
+	TouchableOpacity,
 	StyleSheet,
 } from 'react-native';
 import BlueDot from '../../Components/BlueDot';
@@ -13,7 +16,14 @@ class Help extends Component {
 		return (
 			<View style={{flexDirection: "column", flex: 1}}>
 				<View style={styles.headerContainer}>
-					<HeaderText title="자주묻는 질문" />
+					<View style={styles.headerLeft}>
+						<HeaderText title="자주묻는 질문" />
+					</View>
+					<View style={styles.headerRight}>
+						<TouchableOpacity onPress={() => this.props.navigation.pop()}>
+							<Image source={require('../../assets/images/X.png')} />
+						</TouchableOpacity>
+					</View>
 				</View>
 				<View style={{flex: 0.85, width: "90%", marginLeft: "5%", marginRight: "5%", marginBottom: 5,}}>
 					<View style={styles.itemContainer}>
@@ -52,19 +62,27 @@ export default Help;
 
 const styles = StyleSheet.create({
 	headerContainer: {
-		flex: 0.075,
-		flexDirection: "row",
-		justifyContent: "flex-start",
-		alignItems: "flex-end",
-		// paddingBottom: 20,
-		marginBottom: 10,
+		marginTop: 10,
+        marginBottom: 30,
+		flexDirection: 'row',
+		justifyContent: "space-between",
+		alignItems: 'flex-start',
+		borderBottomColor: "#C4C4C4",
+		borderBottomWidth: 1,
+		paddingBottom: 5,
+	},
+	headerLeft: {
+        marginLeft: Dimensions.get('window').width / 20
+	},
+	headerRight: {
+        marginRight: Dimensions.get('window').width / 20
 	},
 	replyContainer: {
 		marginRight: "5%",
 	},
 	replyText: {
 		fontSize: 15,
-		color: "#2665A1",
+		color: "#0078d4",
 	},
 	loginButton: {
 		width: '100%',
@@ -98,8 +116,6 @@ const styles = StyleSheet.create({
 		marginTop: 16,
 		marginLeft: "auto",
 		marginRight: "auto",
-		// height: Dimensions.get("window").height / 3,
-		// height: 'auto',
 		paddingBottom: 20,
 	},
 	contentText: {

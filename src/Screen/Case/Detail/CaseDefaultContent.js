@@ -7,9 +7,16 @@ import {
 	TextInput,
 	ScrollView,
 	StyleSheet,
+    Dimensions,
 } from 'react-native';
 import {Collapse, CollapseHeader, CollapseBody, AccordionList} from 'accordion-collapse-react-native';
 import { store } from '../../../redux/store';
+import moment from 'moment';
+import WebView from 'react-native-webview';
+import { commonApi } from '../../../Common/ApiConnector';
+import SimpleToast from 'react-native-simple-toast';
+import WebViewInline from '../../WebViewInline';
+
 
 class CaseDetailContent extends Component {
 
@@ -17,9 +24,10 @@ class CaseDetailContent extends Component {
         super();
         this.state = {
             category: 'all',
-            collapse1: false,
+            collapse1: true,
             collapse2: false,
             collapse3: false,
+            content: '',
         }
 
         this.toggleCollapse = this.toggleCollapse.bind(this);
@@ -35,30 +43,75 @@ class CaseDetailContent extends Component {
         }
     }
 
+    componentDidMount() {
+
+        let data = store.getState().cases
+
+        if(data.content === undefined || data.content === null || data.content === '') {
+            commonApi('GET', `user/case/caseIdx/${data.caseIdx}`, {}).then((result) => {
+                if(result.success === undefined) {
+                    this.setState({
+                        content: result[0].content
+                    })
+                    data.content = result[0].content
+                } else {
+                    SimpleToast.show(result.msg, SimpleToast.BOTTOM)
+                }
+            }).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
+        } else {
+            this.setState({
+                content: data.content
+            })
+        }
+
+    }
+
 	render() {
-
-        const data = store.getState().cases
-
 		return (
 			<ScrollView style={styles.caseContainer}>
-                <Collapse onToggle={() => this.toggleCollapse(1)}>
+                {/* 웹뷰 */}
+                <View>
+                    <WebViewInline 
+                        html={this.state.content} 
+                        style={{ 
+                            flex:1 , height: Dimensions.get('window').height
+                        }} 
+                    />
+                </View>
+                {/* 웹뷰 아닌형식 */}
+                {/* <Collapse onToggle={() => this.toggleCollapse(1)} isExpanded={true} style={styles.collapse}>
                     <CollapseHeader style={styles.categoryButton}>
                         <View style={styles.categoryHeader}>
-                            <Text style={styles.categoryTitle}>기본</Text>
+                            <View style={styles.categoryHeaderLeft}>
+                                <BlueDot color={'#1CAA99'} />
+                                <Text style={styles.categoryTitle}>기본</Text>
+                            </View>
                             {
                                 this.state.collapse1 ? (
-                                    <Image style={styles.categoryImage, {marginRight: 13}} source={require('../../../assets/images/Minus.png')} />
-                                ) : (
                                     <Image style={styles.categoryImage} source={require('../../../assets/images/CaretUp.png')} />
+                                ) : (
+                                    <Image style={styles.categoryImage} source={require('../../../assets/images/CaretDown.png')} />
                                 )
                             }
                         </View>
                     </CollapseHeader>
                     <CollapseBody>
-                        <View style={styles.contentContainer}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
-                                    사건번호
+                                    법원
+                                </Text>
+                            </View>
+                            <View style={styles.content}>
+                                <Text style={styles.contentText}>
+                                    {data.court}
+                                </Text>
+                            </View>
+                        </View>
+                        <View style={styles.contentContainer_underline}>
+                            <View style={styles.title}>
+                                <Text style={styles.titleText}>
+                                    사건번호 
                                 </Text>
                             </View>
                             <View style={styles.content}>
@@ -67,7 +120,7 @@ class CaseDetailContent extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.contentContainer_gray}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
                                     사건명
@@ -79,7 +132,7 @@ class CaseDetailContent extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.contentContainer}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
                                     원고
@@ -91,7 +144,7 @@ class CaseDetailContent extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.contentContainer_gray}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
                                     피고
@@ -103,7 +156,7 @@ class CaseDetailContent extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.contentContainer}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
                                     재판부
@@ -115,7 +168,7 @@ class CaseDetailContent extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.contentContainer_gray}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
                                     접수일
@@ -125,7 +178,7 @@ class CaseDetailContent extends Component {
                                 <Text style={styles.contentText}>
                                     {
                                         data.receiptAt.includes('T') ? (
-                                            data.receiptAt.split('T')[0]
+                                            moment.tz(data.receiptAt, 'Asia/Seoul').utc(9).format("YYYY-MM-DD")
                                         ) : (
                                             data.receiptAt
                                         )
@@ -133,7 +186,7 @@ class CaseDetailContent extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.contentContainer}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
                                     종국결과
@@ -141,11 +194,10 @@ class CaseDetailContent extends Component {
                             </View>
                             <View style={styles.content}>
                                 <Text style={styles.contentText}>
-                                    {/* 2017.11.28 이송 */}
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.contentContainer_gray}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
                                     병합구분
@@ -157,7 +209,7 @@ class CaseDetailContent extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.contentContainer}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
                                     상소일
@@ -169,7 +221,7 @@ class CaseDetailContent extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.contentContainer_gray}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
                                     상소각하일
@@ -181,7 +233,7 @@ class CaseDetailContent extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.contentContainer}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
                                     인지액
@@ -193,7 +245,7 @@ class CaseDetailContent extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.contentContainer_gray}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
                                     판결도달일
@@ -205,7 +257,7 @@ class CaseDetailContent extends Component {
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.contentContainer}>
+                        <View style={styles.contentContainer_underline}>
                             <View style={styles.title}>
                                 <Text style={styles.titleText}>
                                     확정일
@@ -219,86 +271,88 @@ class CaseDetailContent extends Component {
                         </View>
                     </CollapseBody>
                 </Collapse>
-                <Collapse onToggle={() => this.toggleCollapse(2)}>
+                <Collapse onToggle={() => this.toggleCollapse(2)} style={styles.collapse}>
                     <CollapseHeader style={styles.categoryButton}>
                         <View style={styles.categoryHeader}>
-                            <Text style={styles.categoryTitle}>당사자내용</Text>
+                            <View style={styles.categoryHeaderLeft}>
+                                <BlueDot color={'#1CAA99'} />
+                                <Text style={styles.categoryTitle}>당사자내용</Text>
+                            </View>
                             {
                                 this.state.collapse2 ? (
-                                    <Image style={styles.categoryImage, {marginRight: 13}} source={require('../../../assets/images/Minus.png')} />
-                                ) : (
                                     <Image style={styles.categoryImage} source={require('../../../assets/images/CaretUp.png')} />
+                                ) : (
+                                    <Image style={styles.categoryImage} source={require('../../../assets/images/CaretDown.png')} />
                                 )
                             }
                         </View>
                     </CollapseHeader>
                     <CollapseBody>
-                        <View style={styles.contentContainer}>
-                            <View style={styles.title}>
-                                <Text style={styles.titleText}>
-                                    원고
-                                </Text>
-                            </View>
-                            <View style={styles.content}>
-                                <Text style={styles.contentText}>
-                                    {data.plaintiff}
-                                </Text>
-                            </View>
-                        </View>
-                        <View style={styles.contentContainer_gray}>
-                            <View style={styles.title}>
-                                <Text style={styles.titleText}>
-                                    피고
-                                </Text>
-                            </View>
-                            <View style={styles.content}>
-                                <Text style={styles.contentText}>
-                                    {data.defendant}
-                                </Text>
-                            </View>
-                        </View>
+                        {
+                            data.party && 
+                            data.party.map((value, index) => {
+                                return (
+                                    // <View style={
+                                    //     index % 2 === 0 ? styles.contentContainer : styles.contentContainer_gray
+                                    // }>
+                                    <View style={styles.contentContainer_underline}>
+                                        <View style={styles.title}>
+                                            <Text style={styles.titleText}>
+                                                {value.Classification.trim()}
+                                            </Text>
+                                        </View>
+                                        <View style={styles.content}>
+                                            <Text style={styles.contentText}>
+                                                {value.name.trim()}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                )
+                            })
+                        }
                     </CollapseBody>
                 </Collapse>
-                <Collapse onToggle={() => this.toggleCollapse(3)}>
+                <Collapse onToggle={() => this.toggleCollapse(3)} style={styles.collapse}>
                     <CollapseHeader style={styles.categoryButton}>
                         <View style={styles.categoryHeader}>
-                            <Text style={styles.categoryTitle}>대리인내용</Text>
+                            <View style={styles.categoryHeaderLeft}>
+                                <BlueDot color={'#1CAA99'} />
+                                <Text style={styles.categoryTitle}>대리인내용</Text>
+                            </View>
                             {
                                 this.state.collapse3 ? (
-                                    <Image style={styles.categoryImage, {marginRight: 13}} source={require('../../../assets/images/Minus.png')} />
-                                ) : (
                                     <Image style={styles.categoryImage} source={require('../../../assets/images/CaretUp.png')} />
+                                ) : (
+                                    <Image style={styles.categoryImage} source={require('../../../assets/images/CaretDown.png')} />
                                 )
                             }
                         </View>
                     </CollapseHeader>
                     <CollapseBody>
-                        <View style={styles.contentContainer}>
-                            <View style={styles.title}>
-                                <Text style={styles.titleText}>
-                                    원고
-                                </Text>
-                            </View>
-                            <View style={styles.content}>
-                                <Text style={styles.contentText}>
-                                    {data.plaintiffDeputy}
-                                </Text>
-                            </View>
-                        </View>
-                        <View style={styles.contentContainer_gray}>
-                            <View style={styles.title}>
-                                <Text style={styles.titleText}>
-                                    피고
-                                </Text>
-                            </View>
-                            <View style={styles.content}>
-                                <Text style={styles.contentText}>
-                                    {data.defendantDeputy}
-                                </Text>
-                            </View>
-                        </View>
+                        {
+                            data.representative && 
+                            data.representative.map((value, index) => {
+                                return (
+                                    // <View style={
+                                    //     index % 2 === 0 ? styles.contentContainer : styles.contentContainer_gray
+                                    // }>
+                                    <View style={styles.contentContainer_underline}>
+                                        <View style={styles.title}>
+                                            <Text style={styles.titleText}>
+                                                {value.Classification.trim()}
+                                            </Text>
+                                        </View>
+                                        <View style={styles.content}>
+                                            <Text style={styles.contentText}>
+                                                {value.name.trim()}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                )
+                            })
+                        }
                     </CollapseBody>
-                </Collapse>
+                </Collapse> */}
 			</ScrollView>
 		);
 	}
@@ -309,29 +363,36 @@ export default CaseDetailContent;
 const styles = StyleSheet.create({
 	caseContainer: {
 		flex: 1,
-        margin: 15,
+        margin: 10,
 	},
+    collapse: {
+        marginTop: 10,
+    },
     categoryButton: {
-        backgroundColor: "#2665A1",
+        borderBottomColor: '#D8D8D8',
+        borderBottomWidth: 1,
     },
     categoryHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: "center",
-        // margin: 15,
         marginTop: 5,
         marginBottom: 5,
         height: 30,
     },
+    categoryHeaderLeft: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        marginLeft: 5,
+    },
     categoryTitle: {
-        color: '#FFFFFF',
+        color: '#000',
         fontSize: 15,
-        fontWeight: "bold",
-        paddingLeft: 16,
+        marginLeft: 5,
     },
     categoryImage: {
         marginRight: 10,
-        // color: "#FFFFFF",
     },
     contentContainer: {
         flexDirection: "row",
@@ -345,14 +406,23 @@ const styles = StyleSheet.create({
         paddingBottom: 7,
         backgroundColor: '#F4F4F4',
     },
+    contentContainer_underline: {
+        flexDirection: 'row',
+        paddingTop: 7,
+        paddingBottom: 7,
+        backgroundColor: '#FFF',
+        borderBottomColor: '#D8D8D8',
+        borderBottomWidth: 1,
+    },
     title: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
     },
     titleText: {
-        fontSize: 15,
-        fontWeight: "bold",
+        fontSize: 13,
+        color: '#808080',
+        flexWrap: "wrap",
     },
     content: {
         flex: 3,
@@ -360,6 +430,7 @@ const styles = StyleSheet.create({
         alignItems: "flex-start",
     },
     contentText: {
-        fontSize: 15
+        fontSize: 13,
+        flexWrap: "wrap",
     },
 })

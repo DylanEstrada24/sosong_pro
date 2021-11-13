@@ -1,7 +1,7 @@
 const defaultState = {
 	caseIdx: 0,
 	title: '',
-    court: '',
+    court: '선택하세요',
     caseNumber: '',
 	caseName: '',
     plaintiff: '',
@@ -17,6 +17,13 @@ const defaultState = {
     representative: '',
     webToken: '',
 	favorite: false,
+	year: '선택하세요',
+	mark: '선택하세요',
+	party: [],
+	representative: [],
+	content: '',
+	todos: [],
+	memos: [],
 };
 
 function reducer(state = defaultState, {type, payload}) {

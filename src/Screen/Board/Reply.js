@@ -37,7 +37,7 @@ export default Reply;
 
 const styles = StyleSheet.create({
 	replyContainer: {
-        borderTopColor: "#2665A1",
+        borderTopColor: "#0078d4",
         borderTopWidth: 1,
         width: "100%",
         height: 'auto',
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     },
     dateText: {
         fontSize: 15,
-        color: "#2665A1"
+        color: "#0078d4"
     },
     content: {
 

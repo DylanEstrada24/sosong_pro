@@ -4,8 +4,6 @@ import {
 	TouchableOpacity,
 	Text,
 	StyleSheet,
-	Dimensions,
-	FlatList,
 } from 'react-native';
 
 import { commonApi } from '../../Common/ApiConnector';
@@ -31,11 +29,13 @@ class User extends Component {
 	async updateStatus(data) {
 
 		commonApi('POST', 'admin/update/user/status', data).then((result) => {
-			// console.log(result)
 			if(result.success) {
 				this.props.deleteUser(this.state.user.idx)
+			} else {
+				SimpleToast.show(result.msg, SimpleToast.BOTTOM)
 			}
-		}).catch((err) => console.log('admin/update/user/status', err))
+		// }).catch((err) => console.log('admin/update/user/status', err))
+		}).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
 
 	}
 
@@ -74,13 +74,13 @@ const styles = StyleSheet.create({
 	},
 	infoContainer: {
 		paddingLeft: 25,
-		borderLeftColor: '#2665A1',
+		borderLeftColor: '#0078d4',
 		borderLeftWidth: 6,
 	},
 	text: {
 		fontSize: 15,
 		fontWeight: 'bold',
-		color: '#2665A1'
+		color: '#0078d4'
 	},
 	email: {
 		fontSize: 15,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
 		marginRight: 12,
 	},
 	accept: {
-		backgroundColor: '#2665A1',
+		backgroundColor: '#0078d4',
 		borderRadius: 3,
 		height: 32,
 		width: 70,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 	},
 	reject: {
 		backgroundColor: '#FFFFFF',
-		borderColor: '#2665A1',
+		borderColor: '#0078d4',
 		borderWidth: 2,
 		borderRadius: 3,
 		marginTop: 7,

@@ -3,293 +3,180 @@ import {
 	View,
 	Text,
 	TouchableOpacity,
-	TextInput,
 	StyleSheet,
 	Dimensions,
-	KeyboardAvoidingView,
-	Keyboard,
-} from 'react-native';
-import BlueDot from '../../Components/BlueDot';
-import Util from '../../Common/Util';
+	Image,
+} from 'react-native'
+import CheckBox from '@react-native-community/checkbox';
 
-import { store } from '../../redux/store';
-import { commonApi } from '../../Common/ApiConnector';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import SimpleToast from 'react-native-simple-toast';
 
 class Enroll extends Component {
 	constructor(props) {
 		super(props);
 		this.state = ({
-			email: '',
-			password: '',
-			passwordConfirm: '',
-			name: '',
-			gender: 'm',
-			phoneNumber: '',
-			overlap: false,
-			pwdCheck: false,
-			errorMsg: '',
-			isLoading: false,
+			allCheck: false, // 모두 동의
+			age: false, // 14세이상
+			service: false, // 서비스약관 동의
+			termin: false, // 정보수집 동의
+			term: false, // 유효기간 탈퇴까지 동의
+			alarmAgree: false, // 알림 수신 동의
 		})
 
-		this.overlapCheck = this.overlapCheck.bind(this)
-		this.enrollHandler = this.enrollHandler.bind(this)
-		this.pwdCheck = this.pwdCheck.bind(this)
+		this.allCheck = this.allCheck.bind(this)
+		this.checkHandler = this.checkHandler.bind(this)
 
 	}
 
-	async enrollHandler() {
-
-		Keyboard.dismiss();
-
-		if (!Util.isValidEmail(this.state.email)) {
-			console.log("if (!Util.isValidEmail(this.state.email))")
-			this.setState({
-			  isLoading: false,
-			  errorMsg: 'Invalid email address',
-			});
-			return;
-		}
-
-		if (!Util.passwordTest2(this.state.password)) {
-			console.log("if (!Util.passwordTest2(this.state.password))")
-			this.setState({
-			  isLoading: false,
-			  errorMsg: 'You must include a password',
-			});
-			return;
-		}
-
-		if (this.state.passwordConfirm === '') {
-			console.log("if (this.state.passwordConfirm === '')")
-			this.setState({
-			  isLoading: false,
-			  errorMsg: 'You must include a password confirm',
-			});
-			return;
-		}
-
-		if (this.state.name.trim() === '') {
-			console.log("if (this.state.name.trim() === '')")
-			this.setState({
-			  isLoading: false,
-			  errorMsg: 'You must include your name',
-			});
-			return;
-		}
-
-		if (!Util.phoneCheck(this.state.phoneNumber)) {
-			console.log("if (!Util.phoneCheck(this.state.phoneNumber))")
-			this.setState({
-				isLoading: false,
-				errorMsg: 'You must include a phone number',
-			});
-			return;
-		}
-
-		if(this.state.password !== this.state.passwordConfirm) {
-			console.log("if(this.state.password !== this.state.passwordConfirm)")
-			this.setState({
-				passwordConfirm: '',
-				isLoading: false,
-				errorMsg: 'You must check a password confirm',
-			});
-			return;
-		}
-
-		let phoneNumber = Util.autoHypenPhone(this.state.phoneNumber)
-
-		const user = {
-			name: this.state.name,
-			password: this.state.password,
-			email: this.state.email,
-			gender: 'm',
-			phoneNumber: phoneNumber
-		}
-
-		// console.log(user)
-
-		// this.setState({
-		// 	phoneNumber: Util.autoHypenPhone(this.state.phoneNumber)
-		// })
-
-		commonApi('POST', 'auth/signup', user).then((data) => {
-
-			console.log(data);
-
-			// {"msg": "회원가입 완료", "success": true}
-
-			// swal 사용해서 성공했을때 변호사 증명자료 제출 메세지 띄우기
-
-			this.props.navigation.pop()
-
-		}).catch((err) => (console.log(err)));
-
+	allCheck(bool) {
+		this.setState({
+			allCheck: bool, 
+			age: bool, 
+			service: bool, 
+			termin: bool, 
+			term: bool, 
+			alarmAgree: bool, 
+		})
 	}
 
-	overlapCheck() {
-		// 이메일 중복체크
+	checkHandler() {
+		if(this.state.age === false) {
+			SimpleToast.show("필수 약관에 동의해주세요.", SimpleToast.BOTTOM)
+			return
+		}
+		if(this.state.service === false) {
+			SimpleToast.show("필수 약관에 동의해주세요.", SimpleToast.BOTTOM)
+			return
+		}
+		if(this.state.termin === false) {
+			SimpleToast.show("필수 약관에 동의해주세요.", SimpleToast.BOTTOM)
+			return
+		}
+
+		this.props.navigation.navigate("EnrollForm")
 
 	}
-
-	pwdCheck() {
-		
-	}
-
-	onEmailHandle = (email) => this.setState({email})
-
-	onPasswordHandle = (password) => this.setState({password})
-
-	onPasswordConfirmHandle = (passwordConfirm) => this.setState({passwordConfirm})
-
-	onAccountHandle = (name) => this.setState({name})
-
-	onPhoneNumberHandle = (phoneNumber) => this.setState({phoneNumber})
 
 	render() {
 		return (
 			<View style={styles.container}>
-				<KeyboardAwareScrollView style={{flex: 1,}} scrollEnabled={true}>
-					<View style={styles.contentContainer}>
-						<View style={styles.headerContainer}>
-							<View>
-								<Text style={styles.titleText}>
-									회원가입
-								</Text>
+				<View style={styles.contentContainer}>
+					<View style={styles.headerContainer}>
+						<View style={styles.header}>
+							<View style={styles.headerLeft}/>
+							<View style={styles.headerRight}>
+								<TouchableOpacity onPress={() => this.props.navigation.pop()}>
+									<Image source={require('../../assets/images/X.png')} />
+								</TouchableOpacity>
 							</View>
 						</View>
-						<View style={styles.content}>
-							<View style={styles.contentTop}>
-								<View style={styles.inputContainer}>
-									<View style={styles.inputTop}>
-										<View style={styles.inputTopLeft}>
-											<BlueDot />
-											<Text style={styles.inputHeader}>ID</Text>
-										</View>
-										{ this.state.overlap ? (
-											<View style={styles.inputTopRight}>
-												<Text style={styles.message}>* 이미 가입된 계정 입니다.</Text>
-											</View>
-
-										) : (<View style={styles.inputTopRight} />) }
-									</View>
-									<View style={styles.inputBottom}>
-										<TextInput 
-											style={styles.input} 
-											placeholder="이메일 주소를 등록하세요." 
-											value={this.state.email} 
-											onChangeText={this.onEmailHandle} 
-											onSubmitEditing={() => { this.secondTextInput.focus(); }}
-										/>
-									</View>
-								</View>
+						<View style={styles.enrollTitleContainer}>
+							<View style={styles.enrollTitle}>
+								<Text style={styles.enrollText}>회원가입을 위해</Text>
+								<Text style={styles.enrollText}>약관에 동의해주세요</Text>
 							</View>
 						</View>
-						<View style={styles.content}>
-							<View style={styles.contentTop}>
-								<View style={styles.inputContainer}>
-									<View style={styles.inputTop}>
-										<View style={styles.inputTopLeft}>
-											<BlueDot />
-											<Text style={styles.inputHeader}>비밀번호</Text>
-										</View>
-									</View>
-									<View style={styles.inputBottom}>
-										<TextInput 
-											style={styles.input} 
-											placeholder="영소문자, 영대문자, 숫자, 특수문자 포함 8자리 이상" 
-											value={this.state.password} 
-											onChangeText={this.onPasswordHandle} 
-											secureTextEntry
-											onSubmitEditing={() => { this.thirdTextInput.focus(); }}
-											ref={(input) => { this.secondTextInput = input; }}
-										/>
-									</View>
-								</View>
+					</View>
+					<View style={styles.itemContainer}>
+						<View style={styles.checkBoxContainer}>
+							<CheckBox
+								value={this.state.allCheck} 
+								style={styles.checkBox} 
+								tintColors={{ true: '#0078d4', false: '#808080' }} 
+								onValueChange={(newValue) => this.allCheck(newValue)}
+							/>
+							<View style={styles.checkBoxExplan}>
+								<Text style={[styles.explanText, {fontSize: 20, color: '#000'}]}>모두 동의합니다</Text>
 							</View>
+							<View style={styles.linkButton} />
 						</View>
-						<View style={styles.content}>
-							<View style={styles.contentTop}>
-								<View style={styles.inputContainer}>
-									<View style={styles.inputTop}>
-										<View style={styles.inputTopLeft}>
-											<BlueDot />
-											<Text style={styles.inputHeader}>비밀번호 확인</Text>
-										</View>
-										{ this.state.pwdCheck ? (
-											<View style={styles.inputTopRight}>
-												<Text style={styles.message}>* 비밀번호와 일치하지 않습니다.</Text>
-											</View>
-										) : (<View style={styles.inputTopRight} />) }
-									</View>
-									<View style={styles.inputBottom}>
-										<TextInput 
-											style={styles.input} 
-											placeholder="영소문자, 영대문자, 숫자, 특수문자 포함 8자리 이상" 
-											value={this.state.passwordConfirm}
-											onChangeText={this.onPasswordConfirmHandle}
-											secureTextEntry
-											onSubmitEditing={() => { this.fourthTextInput.focus(); }}
-											ref={(input) => { this.thirdTextInput = input; }}
-										/>
-									</View>
-								</View>
+						<View style={styles.horizonLine}/>
+						<View style={styles.checkBoxContainer}>
+							<CheckBox
+								value={this.state.age} 
+								style={styles.checkBox}
+								tintColors={{ true: '#0078d4', false: '#808080' }} 
+								onValueChange={(newValue) => this.setState({age: newValue})} 
+							/>
+							<View style={styles.checkBoxExplan}>
+								<Text style={styles.explanText}>만 14세 이상입니다 (필수)</Text>
 							</View>
+							<TouchableOpacity style={styles.linkButton} onPress={() => this.props.navigation.navigate("AgeInfo")}>
+								<Text style={styles.link}>보기</Text>
+							</TouchableOpacity>
 						</View>
-						<View style={styles.content2}>
-							<View style={styles.contentTop}>
-								<View style={styles.inputContainer}>
-									<View style={styles.inputTop}>
-										<View style={styles.inputTopLeft}>
-											<BlueDot />
-											<Text style={styles.inputHeader}>이름</Text>
-										</View>
-									</View>
-									<View style={styles.inputBottom}>
-										<TextInput 
-											style={styles.input} 
-											value={this.state.name}
-											onChangeText={this.onAccountHandle}
-											onSubmitEditing={() => { this.fifthTextInput.focus(); }}
-											ref={(input) => { this.fourthTextInput = input; }}
-										/>
-									</View>
-								</View>
+						<View style={styles.checkBoxContainer}>
+							<CheckBox
+								value={this.state.service} 
+								style={styles.checkBox} 
+								tintColors={{ true: '#0078d4', false: '#808080' }} 
+								onValueChange={(newValue) => this.setState({service: newValue})}
+							/>
+							<View style={styles.checkBoxExplan}>
+								<Text style={styles.explanText}>서비스 이용약관 (필수)</Text>
 							</View>
+							<TouchableOpacity style={styles.linkButton} onPress={() => this.props.navigation.navigate('Service', {url: ''})}>
+								<Text style={styles.link}>보기</Text>
+							</TouchableOpacity>
 						</View>
-						<View style={styles.content}>
-							<View style={styles.contentTop}>
-								<View style={styles.inputContainer}>
-									<View style={styles.inputTop}>
-										<View style={styles.inputTopLeft}>
-											<BlueDot />
-											<Text style={styles.inputHeader}>휴대폰 번호</Text>
-										</View>
-									</View>
-									<View style={styles.inputBottom}>
-										<TextInput 
-											style={styles.input} 
-											placeholder="ex)01012345678" 
-											keyboardType='numeric' 
-											value={this.state.phoneNumber} 
-											onChangeText={this.onPhoneNumberHandle} 
-											onSubmitEditing={() => this.enrollHandler()}
-											ref={(input) => { this.fifthTextInput = input; }}
-										/>
-									</View>
-								</View>
+						<View style={styles.checkBoxContainer}>
+							<CheckBox
+								value={this.state.termin} 
+								style={styles.checkBox} 
+								tintColors={{ true: '#0078d4', false: '#808080' }} 
+								onValueChange={(newValue) => this.setState({termin: newValue})}
+							/>
+							<View style={styles.checkBoxExplan}>
+								<Text style={styles.explanText}>개인정보처리방침 (필수)</Text>
 							</View>
+							<TouchableOpacity style={styles.linkButton} onPress={() => this.props.navigation.navigate('Termin', {url: ''})}>
+								<Text style={styles.link}>보기</Text>
+							</TouchableOpacity>
+						</View>
+						<View style={styles.checkBoxContainer}>
+							<CheckBox
+								value={this.state.term} 
+								style={styles.checkBox} 
+								tintColors={{ true: '#0078d4', false: '#808080' }} 
+								onValueChange={(newValue) => this.setState({term: newValue})}
+							/>
+							<View style={styles.checkBoxExplan}>
+								<Text style={styles.explanText}>개인정보 유효기간을 탈퇴시까지로 설정 (선택)</Text>
+							</View>
+							<TouchableOpacity style={styles.linkButton} onPress={() => this.props.navigation.navigate('Term')}>
+								<Text style={styles.link}>보기</Text>
+							</TouchableOpacity>
+						</View>
+						<View style={styles.checkBoxContainer}>
+							<View style={styles.checkBox} />
+							<View style={styles.checkBoxExplan}>
+								<Text style={styles.explanSubText}>별도 설정하지 않는 경우 1년 미이용 시 휴면 전환</Text>
+							</View>
+							<View style={styles.linkButton} />
+						</View>
+						<View style={styles.checkBoxContainer}>
+							<CheckBox
+								value={this.state.alarmAgree} 
+								style={styles.checkBox} 
+								tintColors={{ true: '#0078d4', false: '#808080' }} 
+								onValueChange={(newValue) => this.setState({alarmAgree: newValue})}
+							/>
+							<View style={styles.checkBoxExplan}>
+								<Text style={styles.explanText}>소송프로 혜택 알림 수신 동의 (선택)</Text>
+							</View>
+							<View style={styles.linkButton}/>
 						</View>
 					</View>
 					<View style={styles.buttonContainer}>
-						<TouchableOpacity 
-							style={styles.button} 
-							onPress={this.enrollHandler} 
-						>
-							<Text style={styles.enroll}>가입완료</Text>
+						<TouchableOpacity style={styles.button} onPress={() => this.checkHandler()}>
+							<Text style={styles.enroll}>다음</Text>
 						</TouchableOpacity>
 					</View>
-				</KeyboardAwareScrollView>
+					<View style={styles.promoteContainer}>
+						<Text style={styles.promote}>회원가입 시 1개월간 전체기능 오픈!</Text>
+						<Text style={styles.promote}>구독 시 추가 1개월 무료!</Text>
+					</View>
+				</View>
 			</View>
 		);
 	}
@@ -302,95 +189,106 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	headerContainer: {
-		marginTop: 30,
-		flexDirection: 'row',
-		// justifyContent: "space-between",
+		marginTop: 10,
+        marginBottom: 30,
+		flexDirection: 'column',
+		justifyContent: "space-between",
 		alignItems: 'flex-start',
-		justifyContent: 'flex-start',
-		// borderBottomColor: "#2665A1",
-		// borderBottomWidth: 1,
 		paddingBottom: 5,
 	},
-	headerLeft: {
+	header: {
 		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		width: '100%',
+	},
+	headerLeft: {
+
+	},
+	headerRight: {
+
+	},
+	enrollTitleContainer: {
+		width: '100%',
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	enrollTitle: {
+		flexDirection: 'column',
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	enrollText: {
+		fontSize: 24,
+        color: '#0078D4'
+	},
+	itemContainer: {
+		justifyContent: 'center',
+		alignItems: 'center',
+		width: '100%',
+	},
+	checkBoxContainer: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		width: '100%',
+		textAlign: 'left',
+		marginTop: 8,
+		marginBottom: 8,
+	},
+	checkBox: {
+		width: '10%',
+	},
+	checkBoxExplan: {
+		textAlign: 'left',
 		justifyContent: 'flex-start',
-		alignItems: "center",
+		alignItems: 'flex-start',
+		width: '80%',
+		fontSize: 16,
+	},
+	explanText: {
+		fontSize: 16,
+		color: '#808080',
+	},
+	explanSubText: {
+		fontSize: 12,
+		color: '#808080',
+	},
+	linkButton: {
+		width: '10%',
+	},
+	horizonLine: {
+		height: 1,
+		width: '100%',
+		backgroundColor: '#D8D8D8'
+	},
+	link: {
+		fontSize: 13,
+		textDecorationLine: 'underline',
 	},
 	titleText: {
 		fontSize: 20,
 		fontWeight: '700',
 	},
 	contentContainer: {
-		// flex: 1,
 		flexDirection: 'column',
 		width: '90%',
 		marginLeft: "5%",
         marginRight: "5%",
 		justifyContent: 'center',
-		// alignItems: 'center',
 	},
-	content: {
-		width: '100%',
-		marginBottom: 14,
-	},
-	content2: {
-		width: '100%',
-		marginTop: 28,
-		marginBottom: 14,
-	},
-	contentTop: {
-		
-	},
-	inputContainer: {
 
-	},
-	inputTop: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		borderBottomColor: '#C4C4C4',
-		borderBottomWidth: 1,
-		paddingLeft: 7,
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-	},
-	inputTopLeft: {
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	inputTopRight: {
-
-	},
-	message: {
-		color: '#F0842C',
-		fontSize: 13,
-		fontWeight: 'bold',
-	},
-	inputHeader: {
-		fontSize: 15,
-		fontWeight: 'bold',
-		marginLeft: 10,
-	},
-	inputBottom: {
-		marginTop: 7,
-	},
-	input: {
-		backgroundColor: '#E5E5E5',
-		borderRadius: 5,
-		paddingLeft: 23,
-	},
 	buttonContainer: {
 		width: '80%',
 		justifyContent: 'center',
 		alignItems: 'center',
-		// backgroundColor: 'red',
 		marginLeft: Dimensions.get('window').width / 10,
 		marginRight: Dimensions.get('window').width / 10,
-		marginTop: 115,
+		marginTop: 50,
 	},
 	button: {
 		width: '100%',
-		backgroundColor: '#2665A1',
+		backgroundColor: '#0078d4',
 		justifyContent: 'center',
 		alignItems: 'center',
 		borderRadius: 3,
@@ -400,5 +298,15 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		fontWeight: 'bold',
 		color: '#FFFFFF',
+	},
+	promoteContainer: {
+		justifyContent: 'center',
+		alignItems: 'center',
+		width: '100%',
+		marginTop: 20,
+	},
+	promote: {
+		color: '#0078D4',
+		marginBottom: 3,
 	},
 })

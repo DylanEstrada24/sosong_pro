@@ -22,6 +22,7 @@ class ToDo extends Component {
             checkBox: false,
             diff: 0,
             favorite: false,
+            color: '#000',
         }
 
         moment().format()
@@ -31,24 +32,32 @@ class ToDo extends Component {
         this.toggleFavorite = this.toggleFavorite.bind(this)
     }
 
-    toggleCheckBox(newValue) {
+    async toggleCheckBox(newValue) {
         // checkbox 값 업데이트 하는 commonApi 통신 추가해야됨.
         this.setState({checkBox: newValue});
 
-        commonApi('PUT', `user/case/todo/isCheck/${this.props.caseIdx}/${this.props.todoIdx}`, {}).then((result) => {
-            console.log(`user/case/todo/isCheck/${this.props.caseIdx}/${this.props.todoIdx}`)
-            console.log(result)
-        }).catch((err) => console.log(`user/case/todo/isCheck/${this.props.caseIdx}/${this.props.todoIdx}`, err))
+        await commonApi('PUT', `user/case/todo/isCheck/${this.props.caseIdx}/${this.props.todoIdx}`, {}).then((result) => {
+            if(result.success) { // 성공
+                this.props.sortTodo(this.props.todoIdx, newValue)
+            } else {
+                SimpleToast.show(result.msg, SimpleToast.BOTTOM)
+            }
+        // }).catch((err) => console.log(`user/case/todo/isCheck/${this.props.caseIdx}/${this.props.todoIdx}`, err))
+        }).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
+
+
     }
 
-    toggleFavorite() {
+    async toggleFavorite() {
         this.setState({
             favorite: !this.state.favorite
         })
 
-        commonApi('PUT', `user/case/todo/favorite/${this.props.caseIdx}/${this.props.todoIdx}`, {}).then((result) => {
+        await commonApi('PUT', `user/case/todo/favorite/${this.props.caseIdx}/${this.props.todoIdx}`, {}).then((result) => {
             console.log(result)
-        }).catch((err) => console.log(`user/case/todo/favorite/${this.props.caseIdx}/${this.props.todoIdx}`, err))
+        // }).catch((err) => console.log(`user/case/todo/favorite/${this.props.caseIdx}/${this.props.todoIdx}`, err))
+        }).catch((err) => SimpleToast.show(err.msg, SimpleToast.BOTTOM))
+
     }
 
     checkDiff() {
@@ -56,21 +65,34 @@ class ToDo extends Component {
         today = moment(today)
         const settingDate = moment(this.props.settingAt)
         let diff = settingDate.diff(today, 'days')
+        let color = '#000'
 
         diff *= -1
-        if(diff > 0) {
-            diff = `+${diff}`
-        } else if(diff === 0) {
-            diff = `-0`
-        }
+        diff > 0 ? (
+            diff = `D+${diff}`,
+            color = '#88001b'
+        ) : (
+            diff === 0 ? (
+                diff = `D-0`
+            ) : (
+                diff = `D${diff}`,
+                color = '#23895f'
+            )
+        )
+        // if(diff > 0) {
+        //     diff = `+${diff}`
+        // } else if(diff === 0) {
+        //     diff = `-0`
+        // }
 
         this.setState({
             diff: diff,
+            color: color,
         })
     }
 
     componentDidMount() {
-        this.checkDiff()
+        // this.checkDiff()
 
         let isCheck = this.props.isCheck
         let favorite = this.props.favorite
@@ -158,11 +180,20 @@ class ToDo extends Component {
     render() {
         moment.locale('ko');
         const day = moment(this.props.settingAt).format('dddd').charAt(0)
+        let diff = ''
+        if(this.props.diff !== undefined && this.props.diff !== null) {
+            diff = this.props.diff
+        }
         return (
             <View style={styles.toDoContainer}>
                 <View style={styles.checkBox}>
-                    <CheckBox tintColors={{ true: '#2665A1', false: '#2665A1' }} style={styles.toDoCheckBox} value={this.state.checkBox} onValueChange={(newValue) => this.toggleCheckBox(newValue)} />
-                    <TouchableOpacity style={styles.favorite} onPress={() => this.toggleFavorite()}>
+                    <CheckBox 
+                        tintColors={{ true: '#0078d4', false: '#0078d4' }} 
+                        style={styles.toDoCheckBox} 
+                        value={this.state.checkBox} 
+                        onValueChange={(newValue) => this.toggleCheckBox(newValue)} 
+                    />
+                    {/* <TouchableOpacity style={styles.favorite} onPress={() => this.toggleFavorite()}>
                         {
                             this.state.favorite ? (
                                 <Image source={require('../../assets/images/Favorite.png')} />
@@ -170,16 +201,34 @@ class ToDo extends Component {
                                 <Image source={require('../../assets/images/NonFavorite.png')} />
                             )
                         }
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     {/* <Image source={require('../../assets/images/Gear.png')} /> */}
                 </View>
                 <View style={styles.toDoTextContainer}>
-                    <Text style={styles.toDoTitle}>마감일 : {this.props.settingAt}({day})</Text>
-                    <Text style={styles.toDoContent}>{this.props.content}</Text>
+                    <Text style={styles.toDoTitle}>{this.props.title}</Text>
+                    {/* <Text style={styles.toDoContent}>{this.props.settingAt}({day})</Text> */}
+                    <Text style={styles.toDoContent}>{this.props.settingAt}</Text>
+                    {/* <Text style={styles.toDoContent}>마감일 : {this.props.settingAt}({day})</Text> */}
                 </View>
-                <View style={styles.dDayTextContainer}>
-                    <Text style={styles.dDayText}>D{this.state.diff}</Text>
-                </View>
+                {
+                    this.state.checkBox ? (
+                        <View style={styles.dDayTextContainer}></View>
+                    ) : (
+                        <View style={styles.dDayTextContainer}>
+                            <Text
+                                style={[
+                                    styles.dDayText, {
+                                        color: this.props.color, 
+                                        fontSize: diff.length > 4 ? 20 : 25
+                                    }
+                                ]}
+                            >
+                                {this.props.diff}
+                            </Text>
+                            {/* <Text style={{color: this.state.color, fontWeight: "bold", fontSize: 30, alignItems: 'center', justifyContent: 'center'}}>{this.state.diff}</Text> */}
+                        </View>
+                    )
+                }
 			</View>
         );
     }
@@ -192,19 +241,18 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: "row",
         width: "90%",
-        // height: 80,
         marginLeft: "5%",
         marginRight: "5%",
         justifyContent: "space-around",
         alignItems: "flex-start",
-        borderColor: "#2665A1",
+        borderColor: "#0078d4",
         borderWidth: 1,
         borderStyle: "solid",
         borderRadius: 10,
         marginTop: 5,
         marginBottom: 5,
-        paddingTop: 18,
-        paddingBottom: 18,
+        paddingTop: 5,
+        paddingBottom: 10,
     },
     checkBox: {
         flex: 0.5,
@@ -216,25 +264,28 @@ const styles = StyleSheet.create({
     },
     toDoTextContainer: {
         flex: 3,
+        justifyContent: 'flex-start',
+        alignItems: 'flex-start',
     },
     toDoTitle: {
-        fontSize: 15,
-        fontWeight: "bold",
-        color: "#2665A1",
-        marginBottom: 5,
+        fontSize: 18,
+        // fontWeight: "bold",
+        marginTop: 4,
     },
     toDoContent: {
         fontSize: 15,
         fontWeight: "400",
+        color: '#808080',
     },
     dDayTextContainer: {
         flex: 1,
-        justifyContent: 'flex-start',
-        alignItems: 'flex-start',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100%',
     },
     dDayText: {
-        color: "#000000",
-        fontWeight: "bold",
-        fontSize: 32,
+        // fontWeight: "bold", 
+        alignItems: 'center', 
+        justifyContent: 'center'
     },
 })

@@ -24,7 +24,7 @@ class NameSetting extends Component {
                     </Text>
                 </View>
                 <View style={styles.inputContainer}>
-                    <TextInput style={styles.textInput} placeholder="4자 이상(한글은 2자 이상)" />
+                    <TextInput style={styles.textInput} placeholder="4자 이상(한글은 2자 이상)" placeholderTextColor="#808080" />
                 </View>
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity style={styles.cancel}>
@@ -48,7 +48,7 @@ export default NameSetting;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        margin: 15,
+        margin: 10,
         flexDirection: 'column',
 
     },
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
         borderRadius: 3,
     },
     submit: {
-        backgroundColor: '#2665A1',
+        backgroundColor: '#0078d4',
         justifyContent: 'center',
         alignItems: 'center',
         width: 150,
